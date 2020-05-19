@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.fragments.TrackingFragment">
+    <com.yandex.mapkit.mapview.MapView
+        android:id="@+id/mapview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <LinearLayout
+        android:id="@+id/location_params"
+        android:padding="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/digital7"
+                    android:padding="4dp"
+
+                    android:text="@string/speed" />
+
+                <TextView
+                    android:id="@+id/speed_m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/digital7"
+                    android:padding="4dp"
+                    android:text="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/digital7"
+                    android:padding="4dp"
+                    android:text="@string/distance" />
+
+                <TextView
+                    android:id="@+id/distance_m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/digital7"
+                    android:gravity="center"
+                    android:padding="4dp"
+                    android:text="0" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+
+<LinearLayout
+    android:gravity="center"
+    android:layout_gravity="bottom|center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/start_btn"
+        app:cornerRadius="@dimen/start_stop_btn_corner_r"
+        android:text="@string/start"
+        style="@style/start_stop_btn" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stop_btn"
+        android:visibility="gone"
+        android:backgroundTint="@color/stop_color"
+        app:cornerRadius="@dimen/start_stop_btn_corner_r"
+        style="@style/start_stop_btn"
+        android:text="@string/stop_btn"
+
+
+       />
+</LinearLayout>
+
+
+</FrameLayout>

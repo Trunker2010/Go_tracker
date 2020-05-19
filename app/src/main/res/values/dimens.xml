@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="start_stop_btn_h_margin">94dp</dimen>
+    <dimen name="start_stop_btn_corner_r">16dp</dimen>
+    <dimen name="start_stop_btn_text_size">24sp</dimen>
+</resources>

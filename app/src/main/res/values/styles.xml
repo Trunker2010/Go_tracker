@@ -1,0 +1,39 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!--Notification-->
+    <style name="notify_params">
+        <item name="android:textColor">@color/notify_params_color</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/digital7</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="notify_lable">
+        <item name="android:textColor">@color/notify_labile_color</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/digital7</item>
+        <item name="android:padding">4dp</item>
+    </style>
+
+    <style name="start_stop_btn_stopped">
+        <item name="backgroundTint">@color/startButtonColor</item>
+        <item name="android:layout_marginStart">@dimen/start_stop_btn_h_margin</item>
+        <item name="android:layout_marginEnd">@dimen/start_stop_btn_h_margin</item>
+        <item name="android:textStyle">italic</item>
+        <item name="android:textSize">@dimen/start_stop_btn_text_size</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+
+</resources>

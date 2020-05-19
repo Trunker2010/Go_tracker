@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="start_stop_btn">
+        <item name="android:backgroundTint">@color/startButtonColor</item>
+        <item name="android:layout_marginStart">@dimen/start_stop_btn_h_margin</item>
+        <item name="android:layout_marginEnd">@dimen/start_stop_btn_h_margin</item>
+        <item name="android:textStyle">italic</item>
+        <item name="android:textSize">@dimen/start_stop_btn_text_size</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+</resources>
