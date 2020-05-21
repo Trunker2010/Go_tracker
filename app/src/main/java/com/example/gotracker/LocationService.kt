@@ -21,10 +21,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.utils.LocationConverter
+import com.yandex.mapkit.geometry.Point
 import java.util.*
 
 const val UPDATE_NOTIFY_CHANNEL = "update_notify"
 const val MINE_NOTIFICATION_ID = 1
+const val STOP_LOC_SERVICE = "goTracker_stopLocServ"
 
 
 class LocationService : Service() {
@@ -40,13 +42,15 @@ class LocationService : Service() {
 
     val locationServiceBinder = LocationServiceBinder()
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
-    var speed: Float = 0.0f
+    var speedKmH: Float = 0.0f
     var distanceInMeters: Double = 0.0
-    var maxSpeed: Double = 0.0
-    var lastLocation: Location? = null
+    var maxSpeed: Float = 0.0F
+    lateinit var lastLocation: Location
     lateinit var mNotificationManager: NotificationManager
     var latitude: Double = 0.0
     var longitude: Double = 0.0
+    var track = ArrayList<Point>()
+    var distanceKm: Double = 0.0
 
     lateinit var locationNotification: LocationNotification
     lateinit var locationManager: LocationManager
@@ -57,26 +61,30 @@ class LocationService : Service() {
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
-            if (lastLocation == null) {
+            if (!this@LocationService::lastLocation.isInitialized) {
                 lastLocation = location
-
             }
             distanceInMeters += location.distanceTo(lastLocation)
             lastLocation = location
 
-            speed = location.speed
-            if (maxSpeed < location.speed) {
-                maxSpeed = location.speed.toDouble()
+            speedKmH = LocationConverter.convertSpeed(location.speed)
+            distanceKm = LocationConverter.convertDistance(distanceInMeters)
+
+            if (maxSpeed < speedKmH) {
+                maxSpeed = speedKmH
             }
             latitude = location.latitude
             longitude = location.longitude
+
+            val point = Point(latitude, longitude)
+            track.add(point)
             mNotificationManager.notify(
                 MINE_NOTIFICATION_ID,
                 locationNotification.updateNotification(
                     speed = String.format(
                         Locale.getDefault(),
                         "%1$,.2f",
-                        LocationConverter.convertSpeed(speed)
+                        speedKmH
                     ),
                     dst = String.format(
                         Locale.getDefault(),
@@ -122,7 +130,7 @@ class LocationService : Service() {
             this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         locationNotification = LocationNotification(context = this)
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        when (intent!!.action) {
+        when (intent?.action) {
             START_TRACKING -> {
                 if (ContextCompat.checkSelfPermission(
                         this,
@@ -130,12 +138,13 @@ class LocationService : Service() {
                     ) === PackageManager.PERMISSION_GRANTED
                 ) {
                     val provider: String = locationManager.getBestProvider(Criteria(), true)
-                    if (provider != null) {
-                        locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
-                        val notification = locationNotification.createNotification()
-                        startForeground(MINE_NOTIFICATION_ID, notification)
-                        isStarted = true
-                    }
+                    locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
+
+
+                    val notification = locationNotification.createNotification()
+                    startForeground(MINE_NOTIFICATION_ID, notification)
+                    isStarted = true
+
                 }
 
 
@@ -148,6 +157,8 @@ class LocationService : Service() {
     }
 
     override fun onDestroy() {
+        locationManager.removeUpdates(locationListener)
+
         Toast.makeText(
             this, "Служба остановлена",
             Toast.LENGTH_SHORT
@@ -155,6 +166,7 @@ class LocationService : Service() {
         isStarted = false
         super.onDestroy()
     }
+
 
     class LocationNotification(private val context: Context) {
         val CHANNEL_ID = "1"

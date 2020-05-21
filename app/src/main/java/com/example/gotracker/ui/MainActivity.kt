@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.LocationService
 import com.example.gotracker.R
+import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
 import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackingFragment
@@ -30,6 +31,7 @@ import com.yandex.mapkit.map.PolylineMapObject
 import com.yandex.mapkit.mapview.MapView
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 const val PERMISSION_REQUEST_CODE = 7
 const val LOC_PARAMS = 1
@@ -37,6 +39,7 @@ const val LOC_PARAMS = 1
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     val ft = supportFragmentManager.beginTransaction()
     lateinit var speedTextView: TextView
+
     lateinit var yandexMap: MapView
     lateinit var distanceTextView: TextView
     lateinit var locParamsHandler: Handler
@@ -48,7 +51,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private var bound: Boolean = false
     lateinit var locParamsRunnable: Runnable
     lateinit var mapObjects: MapObjectCollection
-    var trackPoints = ArrayList<Point>()
 
 
     fun doBindService() {
@@ -73,39 +75,32 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             "%1$,.2f", locParams.distance
 
         ))
+//        addTrackPoints(locParams.track)
     }
 
     private fun initViews() {
-        speedTextView =
-            supportFragmentManager.findFragmentById(R.id.mine_fragment)?.view!!.findViewById<TextView>(
-                R.id.speed_m
-            )
-
-        distanceTextView =
-            supportFragmentManager.findFragmentById(R.id.mine_fragment)?.view!!.findViewById<TextView>(
-                R.id.distance_m
-            )
-
-        yandexMap =
-            supportFragmentManager.findFragmentById(R.id.mine_fragment)!!.view!!.findViewById(
-                R.id.mapview
-            )
+        val trackingBinding = trackingFragment.binding
+        speedTextView = trackingBinding.speedM
+        distanceTextView = trackingBinding.distanceM
+        yandexMap = trackingBinding.mapview
         mapObjects = yandexMap.map.mapObjects.addCollection();
     }
 
     fun doUnbindeSerivice() {
-        unbindService(connection)
-        bound = false
+        if (bound) {
+            unbindService(connection)
+            bound = false
+        }
+
     }
 
 
-    fun addTrackPoints(latitude: Double, longitude: Double) {
+    fun addTrackPoints(position: ArrayList<Point>) {
 
-        val point = Point(latitude, longitude)
-        trackPoints.add(point)
-        var polyline: PolylineMapObject = mapObjects.addPolyline(Polyline(trackPoints))
-        polyline.setStrokeColor(android.graphics.Color.BLACK)
-        polyline.setZIndex(100.0f)
+
+        var polyline: PolylineMapObject = mapObjects.addPolyline(Polyline(position))
+        polyline.strokeColor = android.graphics.Color.GREEN
+
     }
 
 
@@ -117,28 +112,31 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             override fun run() {
 
                 if (LocationService.isStarted && this@MainActivity::locationService.isInitialized) {
-                    locParams.speed = locationService.speed * 60 * 60 / 1000.toDouble()
-                    locParams.distance = locationService.distanceInMeters
+                    locParams.speed = locationService.speedKmH.toDouble()
+                    locParams.distance = locationService.distanceKm
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
+                    locParams.track = locationService.track
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
 
+
                 }
-                locParamsHandler.postDelayed(this, 1000)
+                locParamsHandler.postDelayed(this, 1500)
             }
 
         }
+        locParamsRunnable.run()
 
-        val t = Thread(locParamsRunnable)
-        t.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        //mainBinding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(R.layout.activity_main)
+
         trackingFragment = TrackingFragment.newInstance()
+
+
         ReplaceFragment(trackingFragment)
         intentService = Intent(applicationContext, LocationService::class.java)
         connection = object : ServiceConnection {
@@ -163,19 +161,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 var locParams = msg.obj as LocParams
                 if (msg.what == LOC_PARAMS) {
                     if (navigation.selectedItemId == R.id.track && navigation != null && bound) {
-                        updateParams(locParams)
-                        addTrackPoints(locParams.latitude, locParams.longitude)
-                        trackingFragment.userLocationLayer.cameraPosition()?.let {
-                            yandexMap.map.move(
-                                it,
-                                Animation(
-                                    Animation.Type.LINEAR,
-                                    1F
-                                ),
-                                null
-                            )
-                        }
 
+
+                        updateParams(locParams)
+                        setCamera()
+
+                        addTrackPoints(locParams.track)
                     }
                 }
 
@@ -194,6 +185,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     doBindService()
                     if (!this@MainActivity::trackingFragment.isInitialized) {
                         trackingFragment = TrackingFragment.newInstance()
+//                        if (LocationService.isStarted) {
+//                            setCamera()
+//                        }
                     }
                     ReplaceFragment(trackingFragment)
                     getLocParams()
@@ -208,6 +202,23 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 else -> false
             }
 
+        }
+
+
+    }
+
+    fun setCamera() {
+
+
+        trackingFragment.userLocationLayer.cameraPosition()?.let {
+            yandexMap.map.move(
+                it,
+                Animation(
+                    Animation.Type.LINEAR,
+                    1F
+                ),
+                null
+            )
         }
 
 
