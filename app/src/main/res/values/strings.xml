@@ -11,4 +11,5 @@
     <string name="distance">Distance:</string>
     <string name="stop_btn">stop</string>
     <string name="stop">stop</string>
+    <string name="pause">pause</string>
 </resources>

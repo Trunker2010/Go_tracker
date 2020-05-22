@@ -14,5 +14,6 @@
 
     <color name="startButtonColor" >#00FF3C</color>
     <color name="stop_color">#FF1100</color>
+    <color name="pauseBtn">#4CAF50</color>
 
 </resources>

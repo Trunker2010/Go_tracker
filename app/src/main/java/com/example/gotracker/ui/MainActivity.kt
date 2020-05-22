@@ -18,7 +18,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.LocationService
 import com.example.gotracker.R
-import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
 import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackingFragment
@@ -43,7 +42,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     lateinit var yandexMap: MapView
     lateinit var distanceTextView: TextView
     lateinit var locParamsHandler: Handler
-
     lateinit var locationService: LocationService
     lateinit var connection: ServiceConnection
     private lateinit var intentService: Intent
@@ -75,7 +73,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             "%1$,.2f", locParams.distance
 
         ))
-//        addTrackPoints(locParams.track)
+        drawTrackPoints(locParams.track)
     }
 
     private fun initViews() {
@@ -95,16 +93,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
 
-    fun addTrackPoints(position: ArrayList<Point>) {
-
+    fun drawTrackPoints(position: ArrayList<Point>) {
 
         var polyline: PolylineMapObject = mapObjects.addPolyline(Polyline(position))
         polyline.strokeColor = android.graphics.Color.GREEN
 
+
     }
 
 
-    private fun getLocParams() {
+    fun getLocParams() {
 
         locParamsRunnable = object : Runnable {
             var message = Message()
@@ -122,7 +120,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
                 }
-                locParamsHandler.postDelayed(this, 1500)
+                locParamsHandler.postDelayed(this, 1000)
             }
 
         }
@@ -138,7 +136,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
         ReplaceFragment(trackingFragment)
-        intentService = Intent(applicationContext, LocationService::class.java)
+        intentService = Intent(this, LocationService::class.java)
         connection = object : ServiceConnection {
             private lateinit var locationBinder: LocationService.LocationServiceBinder
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -166,7 +164,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         updateParams(locParams)
                         setCamera()
 
-                        addTrackPoints(locParams.track)
+                        drawTrackPoints(locParams.track)
                     }
                 }
 
@@ -185,12 +183,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     doBindService()
                     if (!this@MainActivity::trackingFragment.isInitialized) {
                         trackingFragment = TrackingFragment.newInstance()
-//                        if (LocationService.isStarted) {
-//                            setCamera()
-//                        }
+                        if (LocationService.isStarted) {
+                            setCamera()
+                        }
+
                     }
                     ReplaceFragment(trackingFragment)
                     getLocParams()
+
                     //checkPermission()
                     true
                 }
@@ -205,6 +205,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
 
+    }
+
+    fun setPauselocSevice() {
+        locationService.isPaused = true
     }
 
     fun setCamera() {

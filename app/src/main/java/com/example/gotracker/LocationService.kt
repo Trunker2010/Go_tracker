@@ -22,11 +22,15 @@ import androidx.core.content.ContextCompat
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 
 const val UPDATE_NOTIFY_CHANNEL = "update_notify"
 const val MINE_NOTIFICATION_ID = 1
 const val STOP_LOC_SERVICE = "goTracker_stopLocServ"
+const val START_TRACKING = "goTracker_start_tracking"
 
 
 class LocationService : Service() {
@@ -40,6 +44,7 @@ class LocationService : Service() {
         var isStarted: Boolean = false
     }
 
+    var isPaused: Boolean = false
     val locationServiceBinder = LocationServiceBinder()
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
     var speedKmH: Float = 0.0f
@@ -58,6 +63,7 @@ class LocationService : Service() {
     val locationListener = object : LocationListener {
 
         override fun onLocationChanged(location: Location?) {
+
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
@@ -78,6 +84,7 @@ class LocationService : Service() {
 
             val point = Point(latitude, longitude)
             track.add(point)
+            track
             mNotificationManager.notify(
                 MINE_NOTIFICATION_ID,
                 locationNotification.updateNotification(
@@ -118,8 +125,14 @@ class LocationService : Service() {
 
     }
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        return super.onUnbind(intent)
+        return true
+    }
+
     override fun onCreate() {
         super.onCreate()
+
 
     }
 

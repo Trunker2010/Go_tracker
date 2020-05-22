@@ -1,22 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/rootLayout"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.fragments.TrackingFragment">
+
     <com.yandex.mapkit.mapview.MapView
         android:id="@+id/mapview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
     <LinearLayout
         android:id="@+id/location_params"
-        android:padding="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <LinearLayout
@@ -45,8 +53,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/digital7"
-                    android:padding="4dp"
-                    android:text="0" />
+                    android:padding="4dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -69,36 +76,62 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/digital7"
                     android:gravity="center"
-                    android:padding="4dp"
-                    android:text="0" />
+                    android:padding="4dp" />
             </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>
 
 
-<LinearLayout
-    android:gravity="center"
-    android:layout_gravity="bottom|center"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/start_btn"
-        app:cornerRadius="@dimen/start_stop_btn_corner_r"
-        android:text="@string/start"
-        style="@style/start_stop_btn" />
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/stop_btn"
-        android:visibility="gone"
-        android:backgroundTint="@color/stop_color"
-        app:cornerRadius="@dimen/start_stop_btn_corner_r"
-        style="@style/start_stop_btn"
-        android:text="@string/stop_btn"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/mapview"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/stopped_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/start_btn"
+                style="@style/startarted_btns"
+                android:text="@string/start"
+                app:cornerRadius="@dimen/start_stop_btn_corner_r" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/started_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pause_btn"
+                style="@style/startarted_btns"
+                android:backgroundTint="@color/pauseBtn"
+                android:text="@string/pause"
+                app:cornerRadius="@dimen/start_stop_btn_corner_r" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/stop_btn"
+                style="@style/startarted_btns"
+                android:layout_marginHorizontal="8dp"
+                android:backgroundTint="@color/stop_color"
+                android:text="@string/stop_btn"
+                app:cornerRadius="@dimen/start_stop_btn_corner_r" />
 
 
-       />
-</LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
 
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
