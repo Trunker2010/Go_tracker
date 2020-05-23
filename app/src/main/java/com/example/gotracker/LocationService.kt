@@ -22,10 +22,8 @@ import androidx.core.content.ContextCompat
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.collections.ArrayList
 
 const val UPDATE_NOTIFY_CHANNEL = "update_notify"
 const val MINE_NOTIFICATION_ID = 1
@@ -54,11 +52,11 @@ class LocationService : Service() {
     lateinit var mNotificationManager: NotificationManager
     var latitude: Double = 0.0
     var longitude: Double = 0.0
-    var track = ArrayList<Point>()
+    var tracks = ArrayList<ArrayList<Point>>()
     var distanceKm: Double = 0.0
-
     lateinit var locationNotification: LocationNotification
     lateinit var locationManager: LocationManager
+
 
     val locationListener = object : LocationListener {
 
@@ -70,36 +68,36 @@ class LocationService : Service() {
             if (!this@LocationService::lastLocation.isInitialized) {
                 lastLocation = location
             }
-            distanceInMeters += location.distanceTo(lastLocation)
-            lastLocation = location
+            if (!isPaused) {
+                distanceInMeters += location.distanceTo(lastLocation)
+                lastLocation = location
 
-            speedKmH = LocationConverter.convertSpeed(location.speed)
-            distanceKm = LocationConverter.convertDistance(distanceInMeters)
+                speedKmH = LocationConverter.convertSpeed(location.speed)
+                distanceKm = LocationConverter.convertDistance(distanceInMeters)
 
-            if (maxSpeed < speedKmH) {
-                maxSpeed = speedKmH
-            }
-            latitude = location.latitude
-            longitude = location.longitude
-
-            val point = Point(latitude, longitude)
-            track.add(point)
-            track
-            mNotificationManager.notify(
-                MINE_NOTIFICATION_ID,
-                locationNotification.updateNotification(
-                    speed = String.format(
-                        Locale.getDefault(),
-                        "%1$,.2f",
-                        speedKmH
-                    ),
-                    dst = String.format(
-                        Locale.getDefault(),
-                        "%1$,.2f",
-                        LocationConverter.convertDistance(distanceInMeters)
+                if (maxSpeed < speedKmH) {
+                    maxSpeed = speedKmH
+                }
+                latitude = location.latitude
+                longitude = location.longitude
+                val point = Point(latitude, longitude)
+                tracks[tracks.lastIndex].add(point)
+                mNotificationManager.notify(
+                    MINE_NOTIFICATION_ID,
+                    locationNotification.updateNotification(
+                        speed = String.format(
+                            Locale.getDefault(),
+                            "%1$,.2f",
+                            speedKmH
+                        ),
+                        dst = String.format(
+                            Locale.getDefault(),
+                            "%1$,.2f",
+                            LocationConverter.convertDistance(distanceInMeters)
+                        )
                     )
                 )
-            )
+            }
 
 
         }
@@ -132,6 +130,8 @@ class LocationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        addTrack()
+        locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
 
     }
@@ -142,24 +142,12 @@ class LocationService : Service() {
         mNotificationManager =
             this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         locationNotification = LocationNotification(context = this)
-        locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
         when (intent?.action) {
             START_TRACKING -> {
-                if (ContextCompat.checkSelfPermission(
-                        this,
-                        PERMISSION_STRING
-                    ) === PackageManager.PERMISSION_GRANTED
-                ) {
-                    val provider: String = locationManager.getBestProvider(Criteria(), true)
-                    locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
-
-
-                    val notification = locationNotification.createNotification()
-                    startForeground(MINE_NOTIFICATION_ID, notification)
-                    isStarted = true
-
-                }
-
+                val notification = locationNotification.createNotification()
+                startForeground(MINE_NOTIFICATION_ID, notification)
+                isStarted = true
 
             }
 
@@ -169,9 +157,20 @@ class LocationService : Service() {
         return START_REDELIVER_INTENT
     }
 
-    override fun onDestroy() {
-        locationManager.removeUpdates(locationListener)
+    fun startLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                PERMISSION_STRING
+            ) === PackageManager.PERMISSION_GRANTED
+        ) {
+            val provider: String = locationManager.getBestProvider(Criteria(), true)
+            locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
+        }
 
+    }
+
+    override fun onDestroy() {
+        removeLocationUpdate()
         Toast.makeText(
             this, "Служба остановлена",
             Toast.LENGTH_SHORT
@@ -250,6 +249,15 @@ class LocationService : Service() {
             //return CHANNEL_ID
         }
     }
+
+    fun addTrack() {
+        tracks.add(ArrayList())
+    }
+
+    fun removeLocationUpdate() {
+        locationManager.removeUpdates(locationListener)
+    }
+
 
 }
 
