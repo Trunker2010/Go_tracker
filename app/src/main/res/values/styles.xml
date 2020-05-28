@@ -35,5 +35,48 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <style name="editText">
+
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">@dimen/vertical_margin</item>
+        <item name="android:padding">5dp</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <style name="small_text">
+        <item name="android:layout_marginVertical">@dimen/vertical_margin</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="dialog_text">
+        <item name="android:layout_marginHorizontal">@dimen/horizontal_margin</item>
+        <item name="android:layout_marginVertical">@dimen/vertical_margin</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textSize">@dimen/normalTextSize</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="dialog_params">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:layout_marginHorizontal">@dimen/horizontal_margin</item>
+        <item name="android:textSize">@dimen/big_text</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="dialog_btn" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:layout_marginHorizontal">@dimen/dialog_btn_margin</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
 
 </resources>

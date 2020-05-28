@@ -48,22 +48,22 @@
 
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="0"
                     android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/digital7"
-                        android:padding="4dp"
-
+                        android:paddingHorizontal="16dp"
                         android:text="@string/speed" />
 
                     <TextView
+                        android:text="0000"
+                        android:layout_gravity="center_horizontal"
                         android:id="@+id/speed_m"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:fontFamily="@font/digital7"
                         android:padding="4dp" />
                 </LinearLayout>
@@ -71,21 +71,47 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="0"
                     android:orientation="vertical">
 
                     <TextView
+                        android:paddingHorizontal="4dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/digital7"
-                        android:padding="4dp"
+
                         android:text="@string/distance" />
 
                     <TextView
+                        android:layout_gravity="center_horizontal"
+                        android:text="0000"
                         android:id="@+id/distance_m"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:fontFamily="@font/digital7"
+                        android:gravity="center"
+                        android:padding="4dp" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:paddingHorizontal="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/digital7"
+
+                        android:text="@string/maxSpeed" />
+
+                    <TextView
+                        android:layout_gravity="center_horizontal"
+                        android:text="0000"
+                        android:id="@+id/max_speed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:fontFamily="@font/digital7"
                         android:gravity="center"
                         android:padding="4dp" />
@@ -106,18 +132,38 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/stopped_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="left"
             android:orientation="horizontal">
+
+            <ImageButton
+
+                android:id="@+id/settings_btn"
+                style="@style/startarted_btns"
+                android:layout_marginHorizontal="@dimen/horizontal_margin"
+                android:layout_weight="1"
+                android:src="@drawable/ic_settings_black_24dp"
+                android:text="@string/start"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/start_btn"
                 style="@style/startarted_btns"
+                android:layout_width="0dp"
+                android:layout_marginHorizontal="@dimen/horizontal_margin"
                 android:text="@string/start"
-                app:cornerRadius="@dimen/start_stop_btn_corner_r" />
-        </LinearLayout>
+                app:cornerRadius="@dimen/start_stop_btn_corner_r"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+
+                app:layout_constraintStart_toEndOf="@+id/settings_btn"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             android:id="@+id/started_layout"

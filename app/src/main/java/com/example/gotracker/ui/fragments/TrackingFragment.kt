@@ -2,18 +2,17 @@ package com.example.gotracker.ui.fragments
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Color
 import android.graphics.PointF
 import android.os.*
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.example.gotracker.LocationService
@@ -21,32 +20,30 @@ import com.example.gotracker.R
 import com.example.gotracker.STOP_LOC_SERVICE
 import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
-import com.example.gotracker.ui.LOC_PARAMS
+import com.example.gotracker.ui.activities.LOC_PARAMS
+import com.example.gotracker.ui.activities.SettingsActivity
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
 import com.yandex.mapkit.layers.ObjectEvent
-import com.yandex.mapkit.location.Location
-import com.yandex.mapkit.location.LocationListener
-import com.yandex.mapkit.location.LocationStatus
 import com.yandex.mapkit.map.*
-import com.yandex.mapkit.mapview.MapView
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 const val START_TRACKING = "start_tracking"
-const val TAG_FRAGMENT = "fragment"
+const val SAVE_DIALOG_TAG = "saveDialog"
+const val SAVE_DIALOG_REQUEST_CODE = 1
 
+class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
+    View.OnClickListener {
 
-class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickListener {
-
+    private val FRAGMENT_TAG = "FragmentTracker"
     private val MAP_KIT_API_KEY = "6a3e8505-4082-499a-ba52-2a5c023e57ed"
     lateinit var userLocationLayer: UserLocationLayer
     lateinit var mapKit: MapKit
@@ -57,11 +54,15 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
     private var bound: Boolean = false
     private lateinit var connection: ServiceConnection
     private lateinit var mapObjects: MapObjectCollection
-    lateinit var locationListener: LocationListener
     lateinit var locParamsHandler: Handler
     private lateinit var locParamsRunnable: Runnable
     private lateinit var polyline: PolylineMapObject
     val locParams = LocParams()
+    private var saveDialog = SaveTrackDialogFragment()
+    val DISTANCE_KEY :String= "speed"
+    val MAX_SPEED_KEY = "max_sped"
+    val TIME_KEY = "time"
+
 
     private fun getLocParams() {
 
@@ -88,7 +89,7 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
 
     }
 
-    fun doBindService() {
+    private fun doBindService() {
         activity?.bindService(
             intentService,
             connection,
@@ -98,7 +99,7 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
 
     }
 
-    fun doUnbindeSerivice() {
+    private fun doUnbindService() {
         if (bound) {
             activity?.unbindService(connection)
             bound = false
@@ -124,7 +125,7 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
     }
 
     private fun drawTrackPoints(tracks: ArrayList<ArrayList<Point>>) {
-        Log.d("FragmentTracking", "drawTrackPoints")
+        Log.i("FragmentTracking", "drawTrackPoints")
 
 
         for (track in tracks) {
@@ -141,6 +142,7 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
         MapKitFactory.setApiKey(MAP_KIT_API_KEY)
         MapKitFactory.initialize(activity)
         isStarted = LocationService.isStarted
+
         connection = object : ServiceConnection {
             private lateinit var locationBinder: LocationService.LocationServiceBinder
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -162,14 +164,14 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
             override fun handleMessage(msg: Message) {
 
                 if (msg.what == LOC_PARAMS) {
-                    var locParams = msg.obj as LocParams
+                    val locParams = msg.obj as LocParams
                     updateParams(locParams)
 
                 }
 
             }
         }
-
+        retainInstance = true
 
     }
 
@@ -189,8 +191,8 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
         binding.startBtn.setOnClickListener(this)
         binding.stopBtn.setOnClickListener(this)
         binding.pauseBtn.setOnClickListener(this)
+        binding.settingsBtn.setOnClickListener(this)
         mapObjects = binding.mapview.map.mapObjects.addCollection()
-
 
 
         setButton()
@@ -219,8 +221,8 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
     override fun onStop() {
         binding.mapview.onStop()
         MapKitFactory.getInstance().onStop()
-        doUnbindeSerivice()
-        if (this@TrackingFragment::locParamsRunnable.isInitialized){
+        doUnbindService()
+        if (this@TrackingFragment::locParamsRunnable.isInitialized) {
             locParamsHandler.removeCallbacks(locParamsRunnable)
         }
 
@@ -247,12 +249,13 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
     }
 
     override fun onObjectAdded(userLocationView: UserLocationView) {
-        if (activity != null) {
+
 
             userLocationView.arrow.setIcon(
                 ImageProvider.fromResource(
                     activity, R.drawable.user_arrow
                 ), IconStyle().setRotationType(RotationType.ROTATE)
+
             )
 
 
@@ -269,7 +272,8 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
                     .setScale(0f)
 
             )
-        }
+        
+
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -292,14 +296,25 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
             }
             R.id.stop_btn -> {
                 Log.d("FragmentTracking", "stop_btn")
+
                 mapObjects.clear()
                 intentService.action = STOP_LOC_SERVICE
-                doUnbindeSerivice()
+                doUnbindService()
                 activity?.stopService(intentService)
                 locationService.removeLocationUpdate()
                 locParamsHandler.removeCallbacks(locParamsRunnable)
                 isStarted = false
                 changeButton()
+
+
+                saveDialog.arguments = createBundleParams(locParams)
+                saveDialog.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
+
+                fragmentManager?.let {
+                    saveDialog.show(it, SAVE_DIALOG_TAG)
+
+                }
+
 
             }
             R.id.pause_btn -> {
@@ -307,17 +322,41 @@ class TrackingFragment : Fragment(), UserLocationObjectListener, View.OnClickLis
                 locationService.removeLocationUpdate()
                 locationService.isPaused = true
             }
+            R.id.settings_btn -> {
+                val intent = Intent(activity, SettingsActivity::class.java)
+                startActivity(intent)
+            }
 
         }
     }
 
-    fun setCamera() {
+    private fun createBundleParams(locaParams: LocParams): Bundle {
+        val bundle = Bundle()
+        bundle.putDouble(DISTANCE_KEY, locaParams.distance)
+        return bundle
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                SAVE_DIALOG_REQUEST_CODE -> {
+                    Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
+                }
+            }
+
+        }
+
+    }
+
+    private fun setCamera() {
 
         if (locParams.latitude != 0.0) {
             val pos = Point(locParams.latitude, locParams.longitude)
             binding.mapview.map.move(
                 CameraPosition(pos, 15.0f, 0.0f, 0.0f),
-                Animation(Animation.Type.LINEAR, 0.5F),
+                Animation(Animation.Type.LINEAR, 0.3F),
                 null
             )
         }

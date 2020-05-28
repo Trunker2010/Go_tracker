@@ -147,6 +147,8 @@ class LocationService : Service() {
             START_TRACKING -> {
                 val notification = locationNotification.createNotification()
                 startForeground(MINE_NOTIFICATION_ID, notification)
+                speedKmH = 0.0f
+
                 isStarted = true
 
             }
@@ -163,6 +165,7 @@ class LocationService : Service() {
                 PERMISSION_STRING
             ) === PackageManager.PERMISSION_GRANTED
         ) {
+
             val provider: String = locationManager.getBestProvider(Criteria(), true)
             locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
         }

@@ -16,5 +16,6 @@
     <color name="stop_color">#FF1100</color>
     <color name="pauseBtn">#4CAF50</color>
     <color name="params_bg">#FFFFFF</color>
+    <color name="black">#000000</color>
 
 </resources>

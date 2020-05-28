@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/dialog_duration_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            style="@style/dialog_text"
+            android:text="@string/duration" />
+
+        <TextView
+            android:id="@+id/dialog_params_duration"
+            style="@style/dialog_params"
+            android:text="00:00:00" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dialog_distance_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialog_duration_layout">
+
+        <TextView
+            style="@style/dialog_text"
+            android:text="Расстояние:" />
+
+        <TextView
+            android:id="@+id/dialog_params_distance"
+            style="@style/dialog_params"
+            android:text="00" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dialog_maxSpd_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/dialog_distance_layout">
+
+        <TextView
+            style="@style/dialog_text"
+            android:text="@string/dialog_maxSpd" />
+
+        <TextView
+            android:id="@+id/dialog_params_maxSpd"
+            style="@style/dialog_params"
+            android:text="00" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dialog_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginVertical="@dimen/vertical_margin"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_btn"
+            style="@style/dialog_btn"
+            android:text="@string/ok" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancel_btn"
+            style="@style/dialog_btn"
+            android:text="Отмена" />
+
+        <com.google.android.material.button.MaterialButton
+
+            android:id="@+id/no_save_btn"
+            style="@style/dialog_btn"
+            android:text="не сохранять" />
+    </LinearLayout>
+
+
+</LinearLayout>

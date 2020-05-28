@@ -4,4 +4,9 @@
     <dimen name="start_stop_btn_h_margin">94dp</dimen>
     <dimen name="start_stop_btn_corner_r">16dp</dimen>
     <dimen name="start_stop_btn_text_size">24sp</dimen>
+    <dimen name="horizontal_margin">8dp</dimen>
+    <dimen name="vertical_margin">8dp</dimen>
+    <dimen name="normalTextSize">16sp</dimen>
+    <dimen name="big_text">16sp</dimen>
+    <dimen name="dialog_btn_margin">6dp</dimen>
 </resources>

@@ -12,4 +12,14 @@
     <string name="stop_btn">stop</string>
     <string name="stop">stop</string>
     <string name="pause">pause</string>
+    <string name="cd_register_image_view">register_image_view</string>
+    <string name="register_text_we_sent">Мы отправили код SMS с кодом проверки на ваш телефон:</string>
+    <string name="register_hint_default">- - - - - -</string>
+    <string name="exit">Выход</string>
+    <string name="maxSpeed">maxSpd</string>
+    <string name="duration">Продолжительность:</string>
+    <string name="dialog_maxSpd">Максимальная скорость</string>
+    <string name="save">Сохранить</string>
+    <string name="ok">Ok</string>
+
 </resources>
