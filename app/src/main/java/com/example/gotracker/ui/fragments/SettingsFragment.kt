@@ -2,43 +2,78 @@ package com.example.gotracker.ui.fragments
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
+import androidx.preference.EditTextPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 
 import com.example.gotracker.R
 import com.example.gotracker.ui.activities.RegisterActivity
-import com.example.gotracker.utils.AUTH
+import com.example.gotracker.utils.*
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.fragment_settings.*
 
 /**
  * A simple [Fragment] subclass.
  */
-class SettingsFragment : Fragment(R.layout.fragment_settings), View.OnClickListener {
+class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener {
+
+    lateinit var phone: EditTextPreference
+    lateinit var name: EditTextPreference
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.pref, rootKey)
+    }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-
     ): View? {
+        phone = findPreference<EditTextPreference>(getString(R.string.settings_phone_number))!!
+        name = findPreference<EditTextPreference>(getString(R.string.settings_name_key))!!
+        name.title = USER.username
 
-        return inflater.inflate(R.layout.fragment_settings, container, false)
+        name.setOnBindEditTextListener {
+            Log.d("settings", "name.setOnBindEditTextListener")
+
+        }
+
+        preferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
+            when (key) {
+                getString(R.string.settings_name_key) -> {
+                    val name_pref =
+                        sharedPreferences?.getString(getString(R.string.settings_name_key), "")
+                            ?: ""
+                    name.title = name_pref
+                    val dateMap = mutableMapOf<String, Any>()
+                    dateMap[CHILD_USERNAME] = name_pref
+                    REF_DATABASE_ROOT.child(NODE_USERS).child(UID).updateChildren(dateMap)
+                    USER.username = name_pref
+
+                }
+            }
+        }
+
+
+        phone.title = AUTH.currentUser?.phoneNumber
+        return super.onCreateView(inflater, container, savedInstanceState)
     }
 
-    override fun onStart() {
-        exit_view.setOnClickListener(this)
-        super.onStart()
-    }
-
-    override fun onClick(v: View?) {
-        when (v?.id) {
-            exit_view.id -> {
+    override fun onPreferenceClick(preference: Preference?): Boolean {
+        when (preference?.key) {
+            getString(R.string.exitButton) -> {
                 AUTH.signOut()
                 val intent = Intent(activity, RegisterActivity::class.java)
                 activity?.finish()
                 startActivity(intent)
+                return true
             }
         }
+        return false
     }
 
 

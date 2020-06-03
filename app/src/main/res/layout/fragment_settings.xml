@@ -6,13 +6,13 @@
     tools:context=".ui.fragments.SettingsFragment">
 
 
-    <TextView
+    <Button
         android:id="@+id/exit_view"
         android:gravity="center"
         android:layout_weight="1"
         android:padding="6dp"
         android:text="@string/exit"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
 

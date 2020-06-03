@@ -9,11 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.R
+import com.example.gotracker.model.User
 import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackingFragment
-import com.example.gotracker.utils.AUTH
-import com.example.gotracker.utils.ReplaceFragment
-import com.google.firebase.auth.FirebaseAuth
+import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 
 const val PERMISSION_REQUEST_CODE = 7
@@ -21,11 +20,12 @@ const val LOC_PARAMS = 1
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     lateinit var trackingFragment: TrackingFragment
-    lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initFields()
         initFunc(savedInstanceState)
+
+
     }
 
 
@@ -85,8 +85,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun initFields() {
-        AUTH = FirebaseAuth.getInstance()
+        initFirebase()
+        initUser()
+    }
 
+    private fun initUser() {
+        REF_DATABASE_ROOT.child(NODE_USERS).child(UID)
+            .addListenerForSingleValueEvent(AppValueEventListener{
+            USER = it.getValue(User::class.java)?: User()
+                initUserTracks()
+        })
     }
 
 

@@ -22,6 +22,7 @@ import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
 import com.example.gotracker.ui.activities.LOC_PARAMS
 import com.example.gotracker.ui.activities.SettingsActivity
+import com.example.gotracker.utils.*
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.MapKitFactory
@@ -59,7 +60,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     private lateinit var polyline: PolylineMapObject
     val locParams = LocParams()
     private var saveDialog = SaveTrackDialogFragment()
-    val DISTANCE_KEY :String= "speed"
+    val DISTANCE_KEY: String = "speed"
     val MAX_SPEED_KEY = "max_sped"
     val TIME_KEY = "time"
 
@@ -76,7 +77,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.distance = locationService.distanceKm
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
-                    locParams.tracks = locationService.tracks
+                    locParams.tracks_points = locationService.tracks
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
 
@@ -120,7 +121,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             "%1$,.2f", locParams.distance
 
         ))
-        drawTrackPoints(locParams.tracks)
+        drawTrackPoints(locParams.tracks_points)
 
     }
 
@@ -171,6 +172,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
             }
         }
+
         retainInstance = true
 
     }
@@ -251,28 +253,28 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     override fun onObjectAdded(userLocationView: UserLocationView) {
 
 
-            userLocationView.arrow.setIcon(
-                ImageProvider.fromResource(
-                    activity, R.drawable.user_arrow
-                ), IconStyle().setRotationType(RotationType.ROTATE)
+        userLocationView.arrow.setIcon(
+            ImageProvider.fromResource(
+                activity, R.drawable.user_arrow
+            ), IconStyle().setRotationType(RotationType.ROTATE)
 
-            )
+        )
 
 
-            var pinIcon = userLocationView.pin.useCompositeIcon()
-            pinIcon.setIcon(
-                "pin",
-                ImageProvider.fromResource(
-                    activity,
-                    R.drawable.search_result
-                ),
-                IconStyle().setAnchor(PointF(0.0f, 0.0f))
-                    .setRotationType(RotationType.ROTATE)
-                    .setZIndex(5f)
-                    .setScale(0f)
+        var pinIcon = userLocationView.pin.useCompositeIcon()
+        pinIcon.setIcon(
+            "pin",
+            ImageProvider.fromResource(
+                activity,
+                R.drawable.search_result
+            ),
+            IconStyle().setAnchor(PointF(0.0f, 0.0f))
+                .setRotationType(RotationType.ROTATE)
+                .setZIndex(5f)
+                .setScale(0f)
 
-            )
-        
+        )
+
 
     }
 
@@ -297,14 +299,6 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             R.id.stop_btn -> {
                 Log.d("FragmentTracking", "stop_btn")
 
-                mapObjects.clear()
-                intentService.action = STOP_LOC_SERVICE
-                doUnbindService()
-                activity?.stopService(intentService)
-                locationService.removeLocationUpdate()
-                locParamsHandler.removeCallbacks(locParamsRunnable)
-                isStarted = false
-                changeButton()
 
 
                 saveDialog.arguments = createBundleParams(locParams)
@@ -342,12 +336,52 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 SAVE_DIALOG_REQUEST_CODE -> {
+
+                    mapObjects.clear()
+                    intentService.action = STOP_LOC_SERVICE
+                    doUnbindService()
+                    activity?.stopService(intentService)
+                    locationService.removeLocationUpdate()
+                    saveTrack()
+
+                    locationService.clearParams()
+                    locParamsHandler.removeCallbacks(locParamsRunnable)
+                    isStarted = false
+                    changeButton()
+
+
                     Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
                 }
             }
 
         }
 
+    }
+
+    private fun saveTrack() {
+        val dateMap = mutableMapOf<String, Any>()
+        dateMap[CHILD_DISTANCE] = locParams.distance
+        REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
+            .child(dateMap.hashCode().toString())
+            .updateChildren(dateMap)
+
+        for ((trackNumber, track) in locationService.tracks.withIndex()) {
+
+            var pos = 0;
+            track.forEach {
+
+                REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
+                    .child(dateMap.hashCode().toString())
+                    .child(CHILD_TRACK_POINTS).child(trackNumber.toString())
+                    .child(pos.toString()).child(CHILD_LATITUDE).setValue(it.latitude)
+
+                REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
+                    .child(dateMap.hashCode().toString())
+                    .child(CHILD_TRACK_POINTS).child(trackNumber.toString())
+                    .child(pos.toString()).child(CHILD_LONGITUDE).setValue(it.longitude)
+                pos++
+            }
+        }
     }
 
     private fun setCamera() {

@@ -64,10 +64,6 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
             showToast("введите номер")
         } else {
 
-//            fragmentManager?.beginTransaction()
-//                ?.replace(R.id.register_data_container, EnterCodeFragment())
-//                ?.addToBackStack(null)
-//                ?.commit()
             authUser()
 
         }

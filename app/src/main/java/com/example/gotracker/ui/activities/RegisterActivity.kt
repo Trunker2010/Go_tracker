@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.example.gotracker.R
 import com.example.gotracker.databinding.ActivityRegisterBinding
 import com.example.gotracker.ui.fragments.EnterPhoneFragment
+import com.example.gotracker.utils.initFirebase
 
 class RegisterActivity : AppCompatActivity() {
     lateinit var binding: ActivityRegisterBinding
@@ -12,6 +13,7 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        initFirebase()
     }
 
     override fun onStart() {

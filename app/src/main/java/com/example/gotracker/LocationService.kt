@@ -45,15 +45,20 @@ class LocationService : Service() {
     var isPaused: Boolean = false
     val locationServiceBinder = LocationServiceBinder()
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
+
     var speedKmH: Float = 0.0f
     var distanceInMeters: Double = 0.0
     var maxSpeed: Float = 0.0F
+    var tracks = ArrayList<ArrayList<Point>>()
+    var distanceKm: Double = 0.0
+
     lateinit var lastLocation: Location
     lateinit var mNotificationManager: NotificationManager
     var latitude: Double = 0.0
     var longitude: Double = 0.0
-    var tracks = ArrayList<ArrayList<Point>>()
-    var distanceKm: Double = 0.0
+
+
+
     lateinit var locationNotification: LocationNotification
     lateinit var locationManager: LocationManager
 
@@ -81,7 +86,9 @@ class LocationService : Service() {
                 latitude = location.latitude
                 longitude = location.longitude
                 val point = Point(latitude, longitude)
+
                 tracks[tracks.lastIndex].add(point)
+
                 mNotificationManager.notify(
                     MINE_NOTIFICATION_ID,
                     locationNotification.updateNotification(
@@ -145,6 +152,7 @@ class LocationService : Service() {
 
         when (intent?.action) {
             START_TRACKING -> {
+
                 val notification = locationNotification.createNotification()
                 startForeground(MINE_NOTIFICATION_ID, notification)
                 speedKmH = 0.0f
@@ -255,10 +263,22 @@ class LocationService : Service() {
 
     fun addTrack() {
         tracks.add(ArrayList())
+
     }
 
     fun removeLocationUpdate() {
         locationManager.removeUpdates(locationListener)
+    }
+
+
+    fun clearParams(){
+        speedKmH =0.0f
+        distanceKm = 0.0
+        distanceInMeters = 0.0
+        maxSpeed = 0.0f
+        tracks.clear()
+        addTrack()
+
     }
 
 
