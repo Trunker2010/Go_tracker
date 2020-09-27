@@ -13,12 +13,14 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.gotracker.R
 import com.example.gotracker.databinding.FragmentTrackingBinding
+import com.example.gotracker.utils.initUserTracks
 
 
 class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
     lateinit var speedTextView: TextView
     lateinit var distanceTextView: TextView
     lateinit var maxSpdTextView: TextView
+    lateinit var timeDuration: TextView
 
     lateinit var saveBtn: Button
     lateinit var cancel: Button
@@ -32,9 +34,14 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
     ): View? {
         dialog?.setTitle("Сохранить трек?")
         val distance = arguments?.getDouble(TrackingFragment().DISTANCE_KEY)
+        val time = arguments?.getString(TrackingFragment().TIME_KEY)
+
         val v = inflater.inflate(R.layout.fragment_save_track, null)
         distanceTextView = v.findViewById(R.id.dialog_params_distance)
+        timeDuration = v.findViewById(R.id.dialog_params_duration)
+
         distanceTextView.text = distance.toString()
+        timeDuration.text = time
         saveBtn = v.findViewById(R.id.save_btn)
         cancel = v.findViewById(R.id.cancel_btn)
         noSaveBtn = v.findViewById(R.id.no_save_btn)
@@ -61,7 +68,7 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
                 dismiss()
             }
             R.id.save_btn -> {
-
+                initUserTracks()
                 targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
                 dismiss()
 

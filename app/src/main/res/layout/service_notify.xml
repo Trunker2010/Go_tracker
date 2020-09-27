@@ -49,7 +49,7 @@
                     android:text="@string/distance" />
 
                 <TextView
-                    android:id="@+id/distance_params"
+                    android:id="@+id/card_distance_params"
                     style="@style/notify_params"
                     android:text="0" />
             </LinearLayout>

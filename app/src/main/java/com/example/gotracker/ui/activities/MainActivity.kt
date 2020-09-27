@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.example.gotracker.R
 import com.example.gotracker.model.User
 import com.example.gotracker.ui.fragments.FragmentStatistic
+import com.example.gotracker.ui.fragments.TrackListFragment
 import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
@@ -27,7 +28,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
     }
-
 
 
     override fun onStart() {
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private fun initFunc(savedInstanceState: Bundle?) {
 
-        if (AUTH.currentUser !=null) {
+        if (AUTH.currentUser != null) {
             if (savedInstanceState == null) {
 
                 trackingFragment = TrackingFragment.newInstance()
@@ -67,7 +67,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         //checkPermission()
                         true
                     }
-                    R.id.list -> true
+                    R.id.list -> {
+                        ReplaceFragment(TrackListFragment.newInstance())
+                        true
+                    }
                     R.id.statistic -> {
                         ReplaceFragment(FragmentStatistic.newInstance())
                         true
@@ -91,10 +94,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private fun initUser() {
         REF_DATABASE_ROOT.child(NODE_USERS).child(UID)
-            .addListenerForSingleValueEvent(AppValueEventListener{
-            USER = it.getValue(User::class.java)?: User()
+            .addListenerForSingleValueEvent(AppValueEventListener {
+                USER = it.getValue(User::class.java) ?: User()
                 initUserTracks()
-        })
+            })
     }
 
 

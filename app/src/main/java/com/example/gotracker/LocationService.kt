@@ -9,10 +9,7 @@ import android.location.Criteria
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Binder
-import android.os.Build
-import android.os.Bundle
-import android.os.IBinder
+import android.os.*
 import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
@@ -22,8 +19,11 @@ import androidx.core.content.ContextCompat
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
+import kotlinx.coroutines.delay
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+import kotlin.concurrent.thread
 
 const val UPDATE_NOTIFY_CHANNEL = "update_notify"
 const val MINE_NOTIFICATION_ID = 1
@@ -42,6 +42,7 @@ class LocationService : Service() {
         var isStarted: Boolean = false
     }
 
+
     var isPaused: Boolean = false
     val locationServiceBinder = LocationServiceBinder()
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
@@ -57,6 +58,15 @@ class LocationService : Service() {
     var latitude: Double = 0.0
     var longitude: Double = 0.0
 
+    /*Таймер*/
+
+    var startTime = 0L
+    var timeInMileSeconds = 0L
+    var timeSwapBuffer = 0L
+    var updateTime = 0L
+    var currentTime: String = ""
+
+    lateinit var timerThread: Thread
 
 
     lateinit var locationNotification: LocationNotification
@@ -66,7 +76,6 @@ class LocationService : Service() {
     val locationListener = object : LocationListener {
 
         override fun onLocationChanged(location: Location?) {
-
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
@@ -155,8 +164,8 @@ class LocationService : Service() {
 
                 val notification = locationNotification.createNotification()
                 startForeground(MINE_NOTIFICATION_ID, notification)
+                clearParams()
                 speedKmH = 0.0f
-
                 isStarted = true
 
             }
@@ -178,6 +187,47 @@ class LocationService : Service() {
             locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
         }
 
+    }
+
+    fun stopTimer() {
+        timerThread.interrupt()
+        startTime = 0L
+        timeInMileSeconds = 0L
+        timeSwapBuffer = 0L
+        updateTime = 0L
+        currentTime = ""
+        //this.stopSelf()
+    }
+
+    fun startTimer() {
+
+        timerThread = object : Thread() {
+
+            override fun run() {
+                startTime = SystemClock.uptimeMillis();
+
+                while (!isInterrupted) {
+                    timeInMileSeconds = SystemClock.uptimeMillis() - startTime
+                    updateTime = timeSwapBuffer + timeInMileSeconds
+                    currentTime = LocationConverter.convertMStoTime(updateTime)
+//                    Log.d("timerThread", "timeUpdate")
+                    Log.d("timerThreadCurrentTime", timerThread.name)
+
+
+                }
+                stopTimer()
+                Log.d("timerThread", "Interrupted")
+                return
+
+            }
+
+
+        }
+
+
+
+
+        timerThread.start()
     }
 
     override fun onDestroy() {
@@ -233,7 +283,7 @@ class LocationService : Service() {
             val contentView = RemoteViews(context.packageName, R.layout.service_notify)
             contentView.setOnClickPendingIntent(R.id.start_btn, startPendingIntent)
             contentView.setTextViewText(R.id.speed_params, speed)
-            contentView.setTextViewText(R.id.distance_params, dst)
+            contentView.setTextViewText(R.id.card_distance_params, dst)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(icon)
                 .setCustomContentView(contentView)
@@ -271,8 +321,8 @@ class LocationService : Service() {
     }
 
 
-    fun clearParams(){
-        speedKmH =0.0f
+    fun clearParams() {
+        speedKmH = 0.0f
         distanceKm = 0.0
         distanceInMeters = 0.0
         maxSpeed = 0.0f

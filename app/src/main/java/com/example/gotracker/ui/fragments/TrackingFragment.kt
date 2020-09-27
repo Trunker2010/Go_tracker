@@ -63,7 +63,28 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     val DISTANCE_KEY: String = "speed"
     val MAX_SPEED_KEY = "max_sped"
     val TIME_KEY = "time"
+    private var startTime = 0L
+    private var timerHandler = Handler()
 
+    var timeInMileSeconds = 0L
+    var timeSwapBuffer = 0L
+    var updateTime = 0L
+//
+//    var updateTimerTrade = object : Runnable {
+//        override fun run() {
+//            timeInMileSeconds = SystemClock.uptimeMillis() - startTime
+//            updateTime = timeSwapBuffer + timeInMileSeconds
+//            var secs = (updateTime / 1000).toInt()
+//            var minutes = secs / 60
+//            secs %= 60
+//            var milliseconds = (updateTime % 1000).toInt()
+//            current_time.text =
+//                "$minutes:${String.format("%02d", secs)}:${String.format("%03d", milliseconds)}"
+//            timerHandler.postDelayed(this, 0)
+//        }
+//
+//
+//    }
 
     private fun getLocParams() {
 
@@ -78,15 +99,22 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
                     locParams.tracks_points = locationService.tracks
+                    locParams.time = locationService.currentTime
+
+                    locParams.timeMS = locationService.timeInMileSeconds
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
 
                 }
-                locParamsHandler.postDelayed(this, 1000)
+                locParamsHandler.postDelayed(this, 100)//было 1000
             }
 
         }
         locParamsRunnable.run()
+
+    }
+
+    private fun getTimer() {
 
     }
 
@@ -109,7 +137,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
 
-    fun updateParams(locParams: LocParams) {
+    fun updateLocParams(locParams: LocParams) {
         setCamera()
         binding.speedM.text = (String.format(
             Locale.getDefault(),
@@ -121,12 +149,13 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             "%1$,.2f", locParams.distance
 
         ))
+        binding.currentTime.text = locParams.time
         drawTrackPoints(locParams.tracks_points)
 
     }
 
     private fun drawTrackPoints(tracks: ArrayList<ArrayList<Point>>) {
-        Log.i("FragmentTracking", "drawTrackPoints")
+        // Log.i("FragmentTracking", "drawTrackPoints")
 
 
         for (track in tracks) {
@@ -157,6 +186,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locationService = locationBinder.getLocationService()
                 }
             }
+
         }
         intentService = Intent(activity, LocationService::class.java)
 
@@ -166,7 +196,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
                 if (msg.what == LOC_PARAMS) {
                     val locParams = msg.obj as LocParams
-                    updateParams(locParams)
+                    updateLocParams(locParams)
+                    Log.d("locParamsHandler", locParams.time)
 
                 }
 
@@ -288,12 +319,13 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 mapObjects = binding.mapview.map.mapObjects.addCollection()
                 setCamera()
                 intentService.action = START_TRACKING
-
                 activity?.startService(intentService)
                 locationService.startLocationUpdates()
+                locationService.startTimer()
                 isStarted = true
                 getLocParams()
                 changeButton()
+
 
             }
             R.id.stop_btn -> {
@@ -324,9 +356,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         }
     }
 
+
+
     private fun createBundleParams(locaParams: LocParams): Bundle {
         val bundle = Bundle()
         bundle.putDouble(DISTANCE_KEY, locaParams.distance)
+        bundle.putString(TIME_KEY, locaParams.time)
         return bundle
 
     }
@@ -345,8 +380,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     saveTrack()
 
                     locationService.clearParams()
+
                     locParamsHandler.removeCallbacks(locParamsRunnable)
                     isStarted = false
+                    locationService.stopTimer()
+
                     changeButton()
 
 
@@ -361,6 +399,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     private fun saveTrack() {
         val dateMap = mutableMapOf<String, Any>()
         dateMap[CHILD_DISTANCE] = locParams.distance
+        dateMap[CHILD_TIME] = locParams.timeMS
         REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
             .child(dateMap.hashCode().toString())
             .updateChildren(dateMap)
