@@ -41,5 +41,6 @@
     <string name="settings_name_key">settings_name_key</string>
     <string name="settings_phone_number">settings_phone_number</string>
     <string name="time">TIME:</string>
+    <string name="resume">resume</string>
 
 </resources>

@@ -42,11 +42,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:showDividers="middle"
                 android:divider="@drawable/separator"
                 android:dividerPadding="6dp"
                 android:fadeScrollbars="false"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:showDividers="middle">
 
                 <LinearLayout
 
@@ -98,29 +98,29 @@
                 </LinearLayout>
 
                 <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:orientation="vertical">
-
-                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/digital7"
-                    android:paddingHorizontal="4dp"
+                    android:layout_weight="0"
+                    android:orientation="vertical">
 
-                    android:text="@string/maxSpeed" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/digital7"
+                        android:paddingHorizontal="4dp"
 
-                <TextView
-                    android:id="@+id/max_speed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:fontFamily="@font/digital7"
-                    android:gravity="center"
-                    android:padding="4dp"
-                    android:text="0000" />
-            </LinearLayout>
+                        android:text="@string/maxSpeed" />
+
+                    <TextView
+                        android:id="@+id/max_speed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:fontFamily="@font/digital7"
+                        android:gravity="center"
+                        android:padding="4dp"
+                        android:text="0000" />
+                </LinearLayout>
 
 
                 <LinearLayout
@@ -209,6 +209,15 @@
                 android:backgroundTint="@color/pauseBtn"
                 android:text="@string/pause"
                 app:cornerRadius="@dimen/start_stop_btn_corner_r" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/resume_btn"
+                style="@style/startarted_btns"
+                android:backgroundTint="@color/pauseBtn"
+                android:text="@string/resume"
+                android:visibility="gone"
+                app:cornerRadius="@dimen/start_stop_btn_corner_r" />
+
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/stop_btn"

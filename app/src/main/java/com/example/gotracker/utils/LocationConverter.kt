@@ -17,7 +17,7 @@ class LocationConverter {
             secs %= 60
             var milliseconds = (timeInMS % 100).toInt()
 
-            return "$minutes:${String.format("%02d", secs)}:${String.format("%02d", milliseconds)}"
+            return "$minutes:${String.format("%02d", secs)}"/*:${String.format("%02d", milliseconds)}*/
         }
     }
 

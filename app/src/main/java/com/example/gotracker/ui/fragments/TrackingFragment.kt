@@ -41,6 +41,7 @@ const val START_TRACKING = "start_tracking"
 const val SAVE_DIALOG_TAG = "saveDialog"
 const val SAVE_DIALOG_REQUEST_CODE = 1
 
+
 class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
     View.OnClickListener {
 
@@ -58,33 +59,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     lateinit var locParamsHandler: Handler
     private lateinit var locParamsRunnable: Runnable
     private lateinit var polyline: PolylineMapObject
-    val locParams = LocParams()
+    var locParams = LocParams()
     private var saveDialog = SaveTrackDialogFragment()
     val DISTANCE_KEY: String = "speed"
     val MAX_SPEED_KEY = "max_sped"
     val TIME_KEY = "time"
-    private var startTime = 0L
-    private var timerHandler = Handler()
-
-    var timeInMileSeconds = 0L
-    var timeSwapBuffer = 0L
-    var updateTime = 0L
-//
-//    var updateTimerTrade = object : Runnable {
-//        override fun run() {
-//            timeInMileSeconds = SystemClock.uptimeMillis() - startTime
-//            updateTime = timeSwapBuffer + timeInMileSeconds
-//            var secs = (updateTime / 1000).toInt()
-//            var minutes = secs / 60
-//            secs %= 60
-//            var milliseconds = (updateTime % 1000).toInt()
-//            current_time.text =
-//                "$minutes:${String.format("%02d", secs)}:${String.format("%03d", milliseconds)}"
-//            timerHandler.postDelayed(this, 0)
-//        }
-//
-//
-//    }
 
     private fun getLocParams() {
 
@@ -94,19 +73,19 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             override fun run() {
 
                 if (LocationService.isStarted && ::locationService.isInitialized) {
+                    locParams = LocParams()
                     locParams.speed = locationService.speedKmH.toDouble()
                     locParams.distance = locationService.distanceKm
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
                     locParams.tracks_points = locationService.tracks
-                    locParams.time = locationService.currentTime
-
-                    locParams.timeMS = locationService.timeInMileSeconds
+                    locParams.time = locationService.trackTimer.currentTime
+                    locParams.timeMS = locationService.trackTimer.durationTime
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
 
                 }
-                locParamsHandler.postDelayed(this, 100)//было 1000
+                locParamsHandler.postDelayed(this, 1000)//было 1000
             }
 
         }
@@ -114,9 +93,6 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     }
 
-    private fun getTimer() {
-
-    }
 
     private fun doBindService() {
         activity?.bindService(
@@ -225,10 +201,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         binding.stopBtn.setOnClickListener(this)
         binding.pauseBtn.setOnClickListener(this)
         binding.settingsBtn.setOnClickListener(this)
+        binding.resumeBtn.setOnClickListener(this)
         mapObjects = binding.mapview.map.mapObjects.addCollection()
 
 
         setButton()
+        changeButton()
         doBindService()
         return binding.root
     }
@@ -243,9 +221,13 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     override fun onResume() {
+
         if (LocationService.isStarted) {
+
             getLocParams()
         }
+        doBindService()
+
 
         setCamera()
         super.onResume()
@@ -280,6 +262,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     override fun onObjectRemoved(p0: UserLocationView) {
 
     }
+
 
     override fun onObjectAdded(userLocationView: UserLocationView) {
 
@@ -316,13 +299,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         when (v?.id) {
 
             R.id.start_btn -> {
+
                 mapObjects = binding.mapview.map.mapObjects.addCollection()
                 setCamera()
                 intentService.action = START_TRACKING
                 activity?.startService(intentService)
                 locationService.startLocationUpdates()
-                locationService.startTimer()
-                isStarted = true
+                // locationService.trackTimer.startTimer()
+                LocationService.isStarted = true
                 getLocParams()
                 changeButton()
 
@@ -333,35 +317,49 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
 
+
                 saveDialog.arguments = createBundleParams(locParams)
                 saveDialog.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
 
                 fragmentManager?.let {
                     saveDialog.show(it, SAVE_DIALOG_TAG)
+                    //  locationService.trackTimer.onPauseTimer()
 
                 }
 
 
             }
             R.id.pause_btn -> {
-                locParamsHandler.removeCallbacks(locParamsRunnable)
-                locationService.removeLocationUpdate()
-                locationService.isPaused = true
+//                locParamsHandler.removeCallbacks(locParamsRunnable)
+//                locationService.removeLocationUpdate()
+                LocationService.isPaused = true
+                changeButton()
+//                locationService.trackTimer.onPauseTimer()
+
+
+            }
+            R.id.resume_btn -> {
+                LocationService.isPaused = false
+                locationService.addTrack()
+                changeButton()
+//                locationService.trackTimer.offPauseTimer()
             }
             R.id.settings_btn -> {
                 val intent = Intent(activity, SettingsActivity::class.java)
                 startActivity(intent)
-            }
 
+
+            }
         }
+
+
     }
 
 
-
-    private fun createBundleParams(locaParams: LocParams): Bundle {
+    private fun createBundleParams(locParams: LocParams): Bundle {
         val bundle = Bundle()
-        bundle.putDouble(DISTANCE_KEY, locaParams.distance)
-        bundle.putString(TIME_KEY, locaParams.time)
+        bundle.putDouble(DISTANCE_KEY, locParams.distance)
+        bundle.putString(TIME_KEY, locParams.time)
         return bundle
 
     }
@@ -371,20 +369,22 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 SAVE_DIALOG_REQUEST_CODE -> {
-
+                    saveTrack()
                     mapObjects.clear()
                     intentService.action = STOP_LOC_SERVICE
-                    doUnbindService()
+                    LocationService.isStarted = false
+//                    locationService.trackTimer.stopTimer()
+                    LocationService.isPaused = false
                     activity?.stopService(intentService)
                     locationService.removeLocationUpdate()
-                    saveTrack()
+
 
                     locationService.clearParams()
 
                     locParamsHandler.removeCallbacks(locParamsRunnable)
-                    isStarted = false
-                    locationService.stopTimer()
 
+//                    locationService.trackTimer.offPauseTimer()
+                    doUnbindService()
                     changeButton()
 
 
@@ -392,6 +392,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 }
             }
 
+        } else {
+//            locationService.trackTimer.offPauseTimer()
         }
 
     }
@@ -438,7 +440,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     private fun changeButton() {
-        if (isStarted) {
+        if (LocationService.isStarted) {
             binding.stoppedLayout.visibility = View.GONE
             binding.startedLayout.visibility = View.VISIBLE
 
@@ -447,6 +449,15 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
             binding.stoppedLayout.visibility = View.VISIBLE
             binding.startedLayout.visibility = View.GONE
+        }
+
+        if (LocationService.isPaused) {
+            binding.pauseBtn.visibility = View.GONE
+            binding.resumeBtn.visibility = View.VISIBLE
+        } else {
+            binding.resumeBtn.visibility = View.GONE
+            binding.pauseBtn.visibility = View.VISIBLE
+
         }
     }
 
@@ -458,6 +469,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             binding.stoppedLayout.visibility = View.VISIBLE
             binding.startedLayout.visibility = View.GONE
         }
+
+
     }
 
 }

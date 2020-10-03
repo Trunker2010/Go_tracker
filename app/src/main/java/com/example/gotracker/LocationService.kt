@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.example.gotracker.model.TrackTimer
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
@@ -40,10 +41,10 @@ class LocationService : Service() {
 
     companion object {
         var isStarted: Boolean = false
+        var isPaused: Boolean = false
     }
 
 
-    var isPaused: Boolean = false
     val locationServiceBinder = LocationServiceBinder()
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
 
@@ -59,14 +60,7 @@ class LocationService : Service() {
     var longitude: Double = 0.0
 
     /*Таймер*/
-
-    var startTime = 0L
-    var timeInMileSeconds = 0L
-    var timeSwapBuffer = 0L
-    var updateTime = 0L
-    var currentTime: String = ""
-
-    lateinit var timerThread: Thread
+    var trackTimer = TrackTimer()
 
 
     lateinit var locationNotification: LocationNotification
@@ -79,7 +73,7 @@ class LocationService : Service() {
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
-            if (!this@LocationService::lastLocation.isInitialized) {
+            if (!this@LocationService::lastLocation.isInitialized || isPaused) {
                 lastLocation = location
             }
             if (!isPaused) {
@@ -135,12 +129,14 @@ class LocationService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         startService(intent)
+        Log.d("LocationService", "bind")
         return locationServiceBinder
 
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
         return super.onUnbind(intent)
+        Log.d("LocationService", "unbind")
         return true
     }
 
@@ -189,46 +185,6 @@ class LocationService : Service() {
 
     }
 
-    fun stopTimer() {
-        timerThread.interrupt()
-        startTime = 0L
-        timeInMileSeconds = 0L
-        timeSwapBuffer = 0L
-        updateTime = 0L
-        currentTime = ""
-        //this.stopSelf()
-    }
-
-    fun startTimer() {
-
-        timerThread = object : Thread() {
-
-            override fun run() {
-                startTime = SystemClock.uptimeMillis();
-
-                while (!isInterrupted) {
-                    timeInMileSeconds = SystemClock.uptimeMillis() - startTime
-                    updateTime = timeSwapBuffer + timeInMileSeconds
-                    currentTime = LocationConverter.convertMStoTime(updateTime)
-//                    Log.d("timerThread", "timeUpdate")
-                    Log.d("timerThreadCurrentTime", timerThread.name)
-
-
-                }
-                stopTimer()
-                Log.d("timerThread", "Interrupted")
-                return
-
-            }
-
-
-        }
-
-
-
-
-        timerThread.start()
-    }
 
     override fun onDestroy() {
         removeLocationUpdate()
