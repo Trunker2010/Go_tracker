@@ -36,8 +36,10 @@ class LocationService : Service() {
     inner class LocationServiceBinder : Binder() {
         fun getLocationService(): LocationService {
             return this@LocationService
+
         }
     }
+
 
     companion object {
         var isStarted: Boolean = false
@@ -61,7 +63,7 @@ class LocationService : Service() {
 
     /*Таймер*/
     var trackTimer = TrackTimer()
-
+    var startTime = 0L
 
     lateinit var locationNotification: LocationNotification
     lateinit var locationManager: LocationManager

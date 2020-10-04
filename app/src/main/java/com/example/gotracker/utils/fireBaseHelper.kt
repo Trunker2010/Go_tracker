@@ -28,6 +28,7 @@ const val CHILD_USERNAME = "username"
 const val CHILD_DISTANCE = "distance"
 const val CHILD_TIME = "time"
 const val CHILD_TRACK_POINTS = "tracks_points"
+const val CHILD_START_TIME= "start_time"
 
 
 fun initFirebase() {

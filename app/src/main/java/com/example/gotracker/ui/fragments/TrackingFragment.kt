@@ -45,6 +45,7 @@ const val SAVE_DIALOG_REQUEST_CODE = 1
 class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
     View.OnClickListener {
 
+
     private val FRAGMENT_TAG = "FragmentTracker"
     private val MAP_KIT_API_KEY = "6a3e8505-4082-499a-ba52-2a5c023e57ed"
     lateinit var userLocationLayer: UserLocationLayer
@@ -81,8 +82,10 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.tracks_points = locationService.tracks
                     locParams.time = locationService.trackTimer.currentTime
                     locParams.timeMS = locationService.trackTimer.durationTime
+
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
+                    Log.d("locParamsRunnable", locParams.distance.toString())
 
                 }
                 locParamsHandler.postDelayed(this, 1000)//было 1000
@@ -95,6 +98,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
     private fun doBindService() {
+
         activity?.bindService(
             intentService,
             connection,
@@ -164,6 +168,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             }
 
         }
+
         intentService = Intent(activity, LocationService::class.java)
 
         locParamsHandler = @SuppressLint("HandlerLeak")
@@ -173,7 +178,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 if (msg.what == LOC_PARAMS) {
                     val locParams = msg.obj as LocParams
                     updateLocParams(locParams)
-                    Log.d("locParamsHandler", locParams.time)
+                    Log.d("locParamsHandler", locParams.distance.toString())
 
                 }
 
@@ -207,7 +212,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         setButton()
         changeButton()
-        doBindService()
+        //doBindService()
         return binding.root
     }
 
@@ -221,12 +226,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     override fun onResume() {
-
+        doBindService()
         if (LocationService.isStarted) {
 
             getLocParams()
         }
-        doBindService()
+
 
 
         setCamera()
@@ -304,6 +309,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 setCamera()
                 intentService.action = START_TRACKING
                 activity?.startService(intentService)
+                locationService.startTime = System.currentTimeMillis()
                 locationService.startLocationUpdates()
                 // locationService.trackTimer.startTimer()
                 LocationService.isStarted = true
@@ -374,7 +380,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     intentService.action = STOP_LOC_SERVICE
                     LocationService.isStarted = false
 //                    locationService.trackTimer.stopTimer()
-                    LocationService.isPaused = false
+                    //LocationService.isPaused = false
                     activity?.stopService(intentService)
                     locationService.removeLocationUpdate()
 
@@ -384,11 +390,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParamsHandler.removeCallbacks(locParamsRunnable)
 
 //                    locationService.trackTimer.offPauseTimer()
-                    doUnbindService()
+
                     changeButton()
 
 
                     Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
+                    doUnbindService()
+                    doUnbindService()
+                    doUnbindService()
                 }
             }
 
@@ -402,6 +411,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         val dateMap = mutableMapOf<String, Any>()
         dateMap[CHILD_DISTANCE] = locParams.distance
         dateMap[CHILD_TIME] = locParams.timeMS
+        dateMap[CHILD_START_TIME] = locationService.startTime
+
         REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
             .child(dateMap.hashCode().toString())
             .updateChildren(dateMap)
