@@ -28,7 +28,7 @@
         </activity>
 
         <service
-            android:name=".LocationService"
+            android:name="com.example.gotracker.LocationService"
             android:enabled="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     </application>

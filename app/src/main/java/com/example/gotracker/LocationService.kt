@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.model.TrackTimer
 import com.example.gotracker.ui.fragments.START_TRACKING
+import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.delay
@@ -42,12 +43,14 @@ class LocationService : Service() {
 
 
     companion object {
+        var isBound = false
         var isStarted: Boolean = false
         var isPaused: Boolean = false
+
     }
 
 
-    val locationServiceBinder = LocationServiceBinder()
+    lateinit var locationServiceBinder: LocationServiceBinder
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
 
     var speedKmH: Float = 0.0f
@@ -56,7 +59,7 @@ class LocationService : Service() {
     var tracks = ArrayList<ArrayList<Point>>()
     var distanceKm: Double = 0.0
 
-    lateinit var lastLocation: Location
+    var lastLocation: Location? = null
     lateinit var mNotificationManager: NotificationManager
     var latitude: Double = 0.0
     var longitude: Double = 0.0
@@ -72,10 +75,11 @@ class LocationService : Service() {
     val locationListener = object : LocationListener {
 
         override fun onLocationChanged(location: Location?) {
+
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
-            if (!this@LocationService::lastLocation.isInitialized || isPaused) {
+            if (lastLocation == null || isPaused) {
                 lastLocation = location
             }
             if (!isPaused) {
@@ -107,8 +111,10 @@ class LocationService : Service() {
                             "%1$,.2f",
                             LocationConverter.convertDistance(distanceInMeters)
                         )
+
                     )
                 )
+
             }
 
 
@@ -130,59 +136,61 @@ class LocationService : Service() {
 
 
     override fun onBind(intent: Intent?): IBinder? {
-        startService(intent)
-        Log.d("LocationService", "bind")
-        return locationServiceBinder
+
+        if (!this@LocationService::locationServiceBinder.isInitialized) {
+            locationServiceBinder = LocationServiceBinder()
+
+            isBound = true
+            Log.d("LocationService", "bind")
+            return locationServiceBinder
+        } else {
+            return locationServiceBinder
+        }
+
 
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        return super.onUnbind(intent)
+
+        //return super.onUnbind(intent)
+        isBound = false
         Log.d("LocationService", "unbind")
-        return true
+        Toast.makeText(
+            this, "Служба отвязана",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        return false
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
         addTrack()
+        mNotificationManager =
+            this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        locationNotification = LocationNotification(context = this)
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
 
     }
 
+
+
+
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-        mNotificationManager =
-            this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        locationNotification = LocationNotification(context = this)
-
-        when (intent?.action) {
-            START_TRACKING -> {
-
-                val notification = locationNotification.createNotification()
-                startForeground(MINE_NOTIFICATION_ID, notification)
-                clearParams()
-                speedKmH = 0.0f
-                isStarted = true
-
-            }
-
-
-        }
-
-        return START_REDELIVER_INTENT
-    }
-
     fun startLocationUpdates() {
+//        clearParams()
         if (ContextCompat.checkSelfPermission(
                 this,
                 PERMISSION_STRING
             ) === PackageManager.PERMISSION_GRANTED
         ) {
 
+            startForeground(MINE_NOTIFICATION_ID, locationNotification.createNotification())
             val provider: String = locationManager.getBestProvider(Criteria(), true)
             locationManager.requestLocationUpdates(provider, 1000, 1f, locationListener)
+
         }
 
     }
@@ -266,6 +274,7 @@ class LocationService : Service() {
 
             mNotificationManager.createNotificationChannel(notificationChannel)
             //return CHANNEL_ID
+
         }
     }
 
@@ -285,7 +294,11 @@ class LocationService : Service() {
         distanceInMeters = 0.0
         maxSpeed = 0.0f
         tracks.clear()
+        lastLocation = null
         addTrack()
+        stopForeground(true)
+
+        //mNotificationManager.cancel(1)
 
     }
 

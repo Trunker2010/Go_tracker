@@ -34,6 +34,10 @@ import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import java.io.Serializable
 import java.util.*
 
 
@@ -54,7 +58,6 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     var isStarted: Boolean = false
     lateinit var locationService: LocationService
     private lateinit var intentService: Intent
-    private var bound: Boolean = false
     private lateinit var connection: ServiceConnection
     private lateinit var mapObjects: MapObjectCollection
     lateinit var locParamsHandler: Handler
@@ -67,51 +70,32 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     val TIME_KEY = "time"
 
     private fun getLocParams() {
-
-        locParamsRunnable = object : Runnable {
-            var message = Message()
-
-            override fun run() {
-
-                if (LocationService.isStarted && ::locationService.isInitialized) {
-                    locParams = LocParams()
-                    locParams.speed = locationService.speedKmH.toDouble()
-                    locParams.distance = locationService.distanceKm
-                    locParams.latitude = locationService.latitude
-                    locParams.longitude = locationService.longitude
-                    locParams.tracks_points = locationService.tracks
-                    locParams.time = locationService.trackTimer.currentTime
-                    locParams.timeMS = locationService.trackTimer.durationTime
-
-                    message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
-                    locParamsHandler.sendMessage(message)
-                    Log.d("locParamsRunnable", locParams.distance.toString())
-
-                }
-                locParamsHandler.postDelayed(this, 1000)//было 1000
-            }
-
-        }
+//        if (!this::locParamsRunnable.isInitialized) {
+//
+//        }
         locParamsRunnable.run()
+
 
     }
 
 
     private fun doBindService() {
 
-        activity?.bindService(
+        activity?.applicationContext?.bindService(
             intentService,
             connection,
             Context.BIND_AUTO_CREATE
         )
-        bound = true
+
+        LocationService.isBound = true
 
     }
 
     private fun doUnbindService() {
-        if (bound) {
-            activity?.unbindService(connection)
-            bound = false
+        if (LocationService.isBound) {
+            activity?.applicationContext?.unbindService(connection)
+
+            LocationService.isBound = false
         }
 
     }
@@ -150,43 +134,36 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MapKitFactory.setApiKey(MAP_KIT_API_KEY)
-        MapKitFactory.initialize(activity)
-        isStarted = LocationService.isStarted
+        MapKitFactory.initialize(activity?.applicationContext)
+        //isStarted = LocationService.isStarted
+        intentService = Intent(activity?.applicationContext, LocationService::class.java)
 
-        connection = object : ServiceConnection {
-            private lateinit var locationBinder: LocationService.LocationServiceBinder
-            override fun onServiceDisconnected(name: ComponentName?) {
-
-            }
-
-            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                if (!::locationService.isInitialized) {
-                    locationBinder =
-                        service as LocationService.LocationServiceBinder
-                    locationService = locationBinder.getLocationService()
-                }
-            }
+        if (!this::connection.isInitialized) {
 
         }
 
-        intentService = Intent(activity, LocationService::class.java)
 
-        locParamsHandler = @SuppressLint("HandlerLeak")
-        object : Handler() {
-            override fun handleMessage(msg: Message) {
+        if (!this::locParamsHandler.isInitialized) {
+            locParamsHandler = @SuppressLint("HandlerLeak")
+            object : Handler() {
+                override fun handleMessage(msg: Message) {
 
-                if (msg.what == LOC_PARAMS) {
-                    val locParams = msg.obj as LocParams
-                    updateLocParams(locParams)
-                    Log.d("locParamsHandler", locParams.distance.toString())
+                    if (msg.what == LOC_PARAMS) {
+                        val locParams = msg.obj as LocParams
+                        updateLocParams(locParams)
+                        Log.d("locParamsHandler", locParams.distance.toString())
+
+                    }
 
                 }
-
             }
         }
+
 
         retainInstance = true
 
+
+//
     }
 
 
@@ -212,7 +189,6 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         setButton()
         changeButton()
-        //doBindService()
         return binding.root
     }
 
@@ -226,11 +202,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     override fun onResume() {
-        doBindService()
-        if (LocationService.isStarted) {
+
+        if (LocationService.isBound) {
 
             getLocParams()
+
+
         }
+
 
 
 
@@ -241,7 +220,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     override fun onStop() {
         binding.mapview.onStop()
         MapKitFactory.getInstance().onStop()
-        doUnbindService()
+
+
         if (this@TrackingFragment::locParamsRunnable.isInitialized) {
             locParamsHandler.removeCallbacks(locParamsRunnable)
         }
@@ -252,6 +232,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         super.onStop()
 
     }
+
 
     companion object {
 
@@ -274,7 +255,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         userLocationView.arrow.setIcon(
             ImageProvider.fromResource(
-                activity, R.drawable.user_arrow
+                activity?.applicationContext, R.drawable.user_arrow
             ), IconStyle().setRotationType(RotationType.ROTATE)
 
         )
@@ -284,7 +265,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         pinIcon.setIcon(
             "pin",
             ImageProvider.fromResource(
-                activity,
+                activity?.applicationContext,
                 R.drawable.search_result
             ),
             IconStyle().setAnchor(PointF(0.0f, 0.0f))
@@ -297,6 +278,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     }
 
+
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onClick(v: View?) {
 
@@ -305,18 +287,23 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
             R.id.start_btn -> {
 
+
                 mapObjects = binding.mapview.map.mapObjects.addCollection()
                 setCamera()
+                intentService = Intent(activity?.applicationContext, LocationService::class.java)
+
+
+
                 intentService.action = START_TRACKING
-                activity?.startService(intentService)
-                locationService.startTime = System.currentTimeMillis()
+                //activity?.applicationContext?.startService(intentService)
+
+
+                // locationService.startTime = System.currentTimeMillis()
                 locationService.startLocationUpdates()
                 // locationService.trackTimer.startTimer()
                 LocationService.isStarted = true
                 getLocParams()
                 changeButton()
-
-
             }
             R.id.stop_btn -> {
                 Log.d("FragmentTracking", "stop_btn")
@@ -351,7 +338,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 //                locationService.trackTimer.offPauseTimer()
             }
             R.id.settings_btn -> {
-                val intent = Intent(activity, SettingsActivity::class.java)
+                val intent = Intent(activity?.applicationContext, SettingsActivity::class.java)
                 startActivity(intent)
 
 
@@ -375,35 +362,88 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 SAVE_DIALOG_REQUEST_CODE -> {
+
                     saveTrack()
                     mapObjects.clear()
-                    intentService.action = STOP_LOC_SERVICE
-                    LocationService.isStarted = false
+                    Intent(activity?.applicationContext, LocationService::class.java)
+
+
 //                    locationService.trackTimer.stopTimer()
-                    //LocationService.isPaused = false
-                    activity?.stopService(intentService)
+                    // LocationService.isPaused = false
                     locationService.removeLocationUpdate()
-
-
                     locationService.clearParams()
 
                     locParamsHandler.removeCallbacks(locParamsRunnable)
+                    LocationService.isStarted = false
 
 //                    locationService.trackTimer.offPauseTimer()
-
+                    // doUnbindService()
+                    //activity?.applicationContext?.stopService(intentService)
                     changeButton()
 
+                    //locationService.stopSelf()
 
                     Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
-                    doUnbindService()
-                    doUnbindService()
-                    doUnbindService()
+
                 }
             }
 
         } else {
 //            locationService.trackTimer.offPauseTimer()
         }
+
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        locParamsRunnable = object : Runnable {
+            var message = Message()
+
+            override fun run() {
+
+                if (LocationService.isStarted && ::locationService.isInitialized) {
+                    locParams = LocParams()
+                    locParams.speed = locationService.speedKmH.toDouble()
+                    locParams.distance = locationService.distanceKm
+                    locParams.latitude = locationService.latitude
+                    locParams.longitude = locationService.longitude
+                    locParams.tracks_points = locationService.tracks
+                    locParams.time = locationService.trackTimer.currentTime
+                    locParams.timeMS = locationService.trackTimer.durationTime
+
+                    message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
+                    locParamsHandler.sendMessage(message)
+                    Log.d("locParamsRunnable", locParams.distance.toString())
+
+                }
+                locParamsHandler.postDelayed(this, 1000)//было 1000
+            }
+
+
+        }
+
+        intentService = Intent(activity?.applicationContext, LocationService::class.java)
+        connection = object : ServiceConnection {
+            private lateinit var locationBinder: LocationService.LocationServiceBinder
+            override fun onServiceDisconnected(name: ComponentName?) {
+                LocationService.isBound = false
+            }
+
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+
+                if (!::locationService.isInitialized) {
+                    locationBinder =
+                        service as LocationService.LocationServiceBinder
+                    locationService = locationBinder.getLocationService()
+                    Log.d("connection", "onServiceConnected")
+                }
+            }
+
+        }
+
+            doBindService()
+
+
 
     }
 
@@ -484,6 +524,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        if (!LocationService.isStarted) {
+            doUnbindService()
+        }
+    }
 }
 
 
