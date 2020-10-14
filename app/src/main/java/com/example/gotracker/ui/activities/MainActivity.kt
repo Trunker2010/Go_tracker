@@ -4,11 +4,15 @@ import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.R
+import com.example.gotracker.model.Preload
+import com.example.gotracker.model.Preload.Callback
 import com.example.gotracker.model.User
 import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackListFragment
@@ -18,6 +22,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 const val PERMISSION_REQUEST_CODE = 7
 const val LOC_PARAMS = 1
+
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     lateinit var trackingFragment: TrackingFragment
@@ -48,6 +53,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun initFunc(savedInstanceState: Bundle?) {
 
         if (AUTH.currentUser != null) {
@@ -60,6 +66,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             navigation.setOnNavigationItemSelectedListener { item ->
                 when (item.itemId) {
                     R.id.track -> {
+                        initUserTracks()
+
                         trackingFragment = TrackingFragment.newInstance()
                         ReplaceFragment(trackingFragment)
 

@@ -20,6 +20,7 @@ import com.example.gotracker.model.TrackTimer
 import com.example.gotracker.ui.fragments.START_TRACKING
 import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.LocationConverter
+import com.example.gotracker.utils.MyLocationListener
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.delay
 import java.util.*
@@ -72,8 +73,7 @@ class LocationService : Service() {
     lateinit var locationManager: LocationManager
 
 
-    val locationListener = object : LocationListener {
-
+    val locationListener = object : MyLocationListener() {
         override fun onLocationChanged(location: Location?) {
 
             val mNotificationManager =
@@ -116,35 +116,20 @@ class LocationService : Service() {
                 )
 
             }
-
-
         }
-
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-            TODO("Not yet implemented")
-        }
-
-        override fun onProviderEnabled(provider: String?) {
-            TODO("Not yet implemented")
-        }
-
-        override fun onProviderDisabled(provider: String?) {
-            TODO("Not yet implemented")
-        }
-
     }
 
 
     override fun onBind(intent: Intent?): IBinder? {
 
-        if (!this@LocationService::locationServiceBinder.isInitialized) {
+        return if (!this@LocationService::locationServiceBinder.isInitialized) {
             locationServiceBinder = LocationServiceBinder()
 
             isBound = true
             Log.d("LocationService", "bind")
-            return locationServiceBinder
+            locationServiceBinder
         } else {
-            return locationServiceBinder
+            locationServiceBinder
         }
 
 
@@ -176,11 +161,8 @@ class LocationService : Service() {
     }
 
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun startLocationUpdates() {
-//        clearParams()
         if (ContextCompat.checkSelfPermission(
                 this,
                 PERMISSION_STRING
@@ -273,7 +255,6 @@ class LocationService : Service() {
             }
 
             mNotificationManager.createNotificationChannel(notificationChannel)
-            //return CHANNEL_ID
 
         }
     }
@@ -297,8 +278,6 @@ class LocationService : Service() {
         lastLocation = null
         addTrack()
         stopForeground(true)
-
-        //mNotificationManager.cancel(1)
 
     }
 

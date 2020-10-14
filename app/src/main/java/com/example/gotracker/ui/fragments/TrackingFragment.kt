@@ -287,36 +287,24 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
             R.id.start_btn -> {
 
-
                 mapObjects = binding.mapview.map.mapObjects.addCollection()
                 setCamera()
-                intentService = Intent(activity?.applicationContext, LocationService::class.java)
 
 
-
-                intentService.action = START_TRACKING
-                //activity?.applicationContext?.startService(intentService)
-
-
-                // locationService.startTime = System.currentTimeMillis()
+                locationService.startTime = System.currentTimeMillis()
                 locationService.startLocationUpdates()
-                // locationService.trackTimer.startTimer()
+                locationService.trackTimer.startTimer()
                 LocationService.isStarted = true
                 getLocParams()
                 changeButton()
             }
             R.id.stop_btn -> {
                 Log.d("FragmentTracking", "stop_btn")
-
-
-
-
                 saveDialog.arguments = createBundleParams(locParams)
                 saveDialog.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
-
                 fragmentManager?.let {
                     saveDialog.show(it, SAVE_DIALOG_TAG)
-                    //  locationService.trackTimer.onPauseTimer()
+                      locationService.trackTimer.onPauseTimer()
 
                 }
 
@@ -327,7 +315,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 //                locationService.removeLocationUpdate()
                 LocationService.isPaused = true
                 changeButton()
-//                locationService.trackTimer.onPauseTimer()
+                locationService.trackTimer.onPauseTimer()
 
 
             }
@@ -335,7 +323,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 LocationService.isPaused = false
                 locationService.addTrack()
                 changeButton()
-//                locationService.trackTimer.offPauseTimer()
+                locationService.trackTimer.offPauseTimer()
             }
             R.id.settings_btn -> {
                 val intent = Intent(activity?.applicationContext, SettingsActivity::class.java)
@@ -368,20 +356,20 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     Intent(activity?.applicationContext, LocationService::class.java)
 
 
-//                    locationService.trackTimer.stopTimer()
-                    // LocationService.isPaused = false
+                    locationService.trackTimer.stopTimer()
+                     LocationService.isPaused = false
                     locationService.removeLocationUpdate()
                     locationService.clearParams()
 
                     locParamsHandler.removeCallbacks(locParamsRunnable)
                     LocationService.isStarted = false
 
-//                    locationService.trackTimer.offPauseTimer()
-                    // doUnbindService()
-                    //activity?.applicationContext?.stopService(intentService)
+                    locationService.trackTimer.offPauseTimer()
+
+
                     changeButton()
 
-                    //locationService.stopSelf()
+
 
                     Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
 
@@ -389,7 +377,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             }
 
         } else {
-//            locationService.trackTimer.offPauseTimer()
+            locationService.trackTimer.offPauseTimer()
         }
 
     }

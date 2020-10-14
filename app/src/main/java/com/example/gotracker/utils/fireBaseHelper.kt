@@ -1,13 +1,19 @@
 package com.example.gotracker.utils
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.gotracker.START_TRACKING
 import com.example.gotracker.model.User
 import com.example.gotracker.model.UserTrack
+import com.example.gotracker.ui.fragments.TYPE_CONTENT
+import com.example.gotracker.ui.fragments.TYPE_DATE
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.yandex.mapkit.geometry.Point
+import kotlinx.coroutines.android.awaitFrame
+import kotlin.concurrent.thread
 
 
 lateinit var AUTH: FirebaseAuth
@@ -28,7 +34,7 @@ const val CHILD_USERNAME = "username"
 const val CHILD_DISTANCE = "distance"
 const val CHILD_TIME = "time"
 const val CHILD_TRACK_POINTS = "tracks_points"
-const val CHILD_START_TIME= "start_time"
+const val CHILD_START_TIME = "start_time"
 
 
 fun initFirebase() {
@@ -40,17 +46,19 @@ fun initFirebase() {
 
 @RequiresApi(Build.VERSION_CODES.N)
 fun initUserTracks() {
-
-
-
     userTracks = mutableListOf()
     REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
         .addListenerForSingleValueEvent(AppValueEventListener {
             /*получаеи список тереков*/
             it.children.forEach { trackID ->
 
-                var userTrack = UserTrack()
+                var userTrack = UserTrack(TYPE_CONTENT)
                 userTrack.distance = trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
+                userTrack.time = LocationConverter.convertMStoTime(
+                    trackID.child(CHILD_TIME).getValue(Long::class.java)!!
+                )
+                userTrack.startTime =
+                    timeToDate(trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!)
 
                 println(trackID.key)
                 REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID).child(trackID.key.toString()).child(
@@ -63,8 +71,6 @@ fun initUserTracks() {
                         var pointsList = mutableListOf<Point>()
 
                         points.children.forEach { point ->
-
-
                             pointsList.add(
                                 Point(
 
@@ -80,15 +86,47 @@ fun initUserTracks() {
                         userTrack.trackPoints = pointsList
 
                     }
+
                     userTracks.add(userTrack)
+
 
                 })
 
 
             }
 
-
         })
 
+}
+
+fun sortTracks() {
+    userTracks.sortByDescending { it.startTime }
+}
+
+fun difTrackDate() {
+    if (userTracks.size >= 1) {
+        var firstDate = userTracks[0].startTime
+
+        userTracks.add(0, UserTrack(TYPE_DATE))
+        userTracks[0].startTime = firstDate
+
+
+        for (i in userTracks.indices) {
+
+            if (userTracks.size > i + 1 && userTracks[i+1].type!= TYPE_DATE) {
+                if (userTracks[i].startTime != userTracks[i + 1].startTime) {
+                    var bufDate = userTracks[i + 1].startTime
+                    userTracks.add(i + 1, UserTrack(TYPE_DATE))
+                    userTracks[i + 1].startTime = bufDate
+                    i.inc()
+                    Log.d("difTrackDate", userTracks.size.toString())
+                }
+
+
+            }
+
+        }
+
+    }
 
 }
