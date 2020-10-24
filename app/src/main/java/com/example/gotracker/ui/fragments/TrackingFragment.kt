@@ -51,7 +51,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
     private val FRAGMENT_TAG = "FragmentTracker"
-    private val MAP_KIT_API_KEY = "6a3e8505-4082-499a-ba52-2a5c023e57ed"
+
     lateinit var userLocationLayer: UserLocationLayer
     lateinit var mapKit: MapKit
     lateinit var binding: FragmentTrackingBinding
@@ -133,8 +133,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MapKitFactory.setApiKey(MAP_KIT_API_KEY)
+
+
         MapKitFactory.initialize(activity?.applicationContext)
+
+
         //isStarted = LocationService.isStarted
         intentService = Intent(activity?.applicationContext, LocationService::class.java)
 
@@ -160,7 +163,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         }
 
 
-        retainInstance = true
+//        retainInstance = true
 
 
 //
@@ -195,6 +198,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     override fun onStart() {
         super.onStart()
+
         MapKitFactory.getInstance().onStart()
         binding.mapview.onStart()
 
@@ -304,7 +308,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 saveDialog.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
                 fragmentManager?.let {
                     saveDialog.show(it, SAVE_DIALOG_TAG)
-                      locationService.trackTimer.onPauseTimer()
+                    locationService.trackTimer.onPauseTimer()
 
                 }
 
@@ -357,7 +361,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
                     locationService.trackTimer.stopTimer()
-                     LocationService.isPaused = false
+                    LocationService.isPaused = false
                     locationService.removeLocationUpdate()
                     locationService.clearParams()
 
@@ -429,8 +433,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         }
 
-            doBindService()
-
+        doBindService()
 
 
     }
@@ -514,6 +517,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     override fun onDetach() {
         super.onDetach()
+
         if (!LocationService.isStarted) {
             doUnbindService()
         }

@@ -1,19 +1,19 @@
 package com.example.gotracker.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gotracker.R
-import com.example.gotracker.utils.difTrackDate
-import com.example.gotracker.utils.sortTracks
-import com.example.gotracker.utils.userTracks
+import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.fragment_track_list.*
 import kotlinx.android.synthetic.main.track_item.view.*
 import kotlinx.android.synthetic.main.date_item.*
 import kotlinx.android.synthetic.main.date_item.view.*
+import java.util.concurrent.TimeUnit
 
 const val TYPE_DATE = 0;
 const val TYPE_CONTENT = 1;
@@ -41,9 +41,12 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     override fun onResume() {
         super.onResume()
+
+
+
         rv_tracks.adapter = DataAdapter()
-        sortTracks()
-        difTrackDate()
+//        sortTracks()
+//        difTrackDate()
 
     }
 
@@ -51,6 +54,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         override fun getItemViewType(position: Int): Int {
             return userTracks[position].type
         }
+
 
         class TracksHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val distance = itemView.card_distance_params

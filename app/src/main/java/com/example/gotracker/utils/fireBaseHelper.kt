@@ -13,6 +13,11 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.awaitAll
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
@@ -35,7 +40,7 @@ const val CHILD_DISTANCE = "distance"
 const val CHILD_TIME = "time"
 const val CHILD_TRACK_POINTS = "tracks_points"
 const val CHILD_START_TIME = "start_time"
-
+lateinit var executor: ExecutorService
 
 fun initFirebase() {
     AUTH = FirebaseAuth.getInstance()
@@ -46,56 +51,76 @@ fun initFirebase() {
 
 @RequiresApi(Build.VERSION_CODES.N)
 fun initUserTracks() {
+    executor = Executors.newSingleThreadExecutor()
+    var userTrack = UserTrack(TYPE_CONTENT)
     userTracks = mutableListOf()
     REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-        .addListenerForSingleValueEvent(AppValueEventListener {
-            /*получаеи список тереков*/
+        .addListenerForSingleValueEvent(AppValueEventListener  {
+
+
             it.children.forEach { trackID ->
 
-                var userTrack = UserTrack(TYPE_CONTENT)
-                userTrack.distance = trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-                userTrack.time = LocationConverter.convertMStoTime(
-                    trackID.child(CHILD_TIME).getValue(Long::class.java)!!
-                )
-                userTrack.startTime =
-                    timeToDate(trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!)
 
-                println(trackID.key)
-                REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID).child(trackID.key.toString()).child(
-                    CHILD_TRACK_POINTS
-                ).addListenerForSingleValueEvent(AppValueEventListener { tracks ->
+                executor.execute {
 
-                    /*получаем список точек*/
-                    tracks.children.forEach { points ->
+                    userTrack = UserTrack(TYPE_CONTENT)
 
-                        var pointsList = mutableListOf<Point>()
+                    Log.d("dbThread", Thread.currentThread().name)
 
-                        points.children.forEach { point ->
-                            pointsList.add(
-                                Point(
+                    userTrack.distance =
+                        trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
 
-                                    point.child(CHILD_LATITUDE)
-                                        .getValue(Double::class.java) as Double,
-                                    point.child(CHILD_LONGITUDE)
-                                        .getValue(Double::class.java) as Double
-                                )
-                            )
+                    userTrack.time = LocationConverter.convertMStoTime(
+                        trackID.child(CHILD_TIME).getValue(Long::class.java)!!
+                    )
+                    userTrack.startTime =
+                        timeToDate(
+                            trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+                        )
 
 
+
+                }
+
+
+
+                REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
+                    .child(trackID.key.toString()).child(
+                        CHILD_TRACK_POINTS
+                    ).addListenerForSingleValueEvent(AppValueEventListener { tracks ->
+
+                        tracks.children.forEach { points ->
+                            executor.execute {
+                                Log.d("dbThread", Thread.currentThread().name)
+                                var pointsList = mutableListOf<Point>()
+
+                                 points.children.forEach { point ->
+                                    pointsList.add(
+                                        Point(
+
+                                            point.child(CHILD_LATITUDE)
+                                                .getValue(Double::class.java) as Double,
+                                            point.child(CHILD_LONGITUDE)
+                                                .getValue(Double::class.java) as Double
+                                        )
+                                    )
+                                }
+
+
+                                userTrack.trackPoints =  pointsList
+                            }
                         }
-                        userTrack.trackPoints = pointsList
 
+                        userTracks.add(userTrack)
                     }
-
-                    userTracks.add(userTrack)
-
-
-                })
+                    )
 
 
             }
 
+
         })
+
 
 }
 
@@ -113,7 +138,7 @@ fun difTrackDate() {
 
         for (i in userTracks.indices) {
 
-            if (userTracks.size > i + 1 && userTracks[i+1].type!= TYPE_DATE) {
+            if (userTracks.size > i + 1 && userTracks[i + 1].type != TYPE_DATE) {
                 if (userTracks[i].startTime != userTracks[i + 1].startTime) {
                     var bufDate = userTracks[i + 1].startTime
                     userTracks.add(i + 1, UserTrack(TYPE_DATE))

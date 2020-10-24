@@ -18,16 +18,18 @@ import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackListFragment
 import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.*
+import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 const val PERMISSION_REQUEST_CODE = 7
 const val LOC_PARAMS = 1
-
+private val MAP_KIT_API_KEY = "6a3e8505-4082-499a-ba52-2a5c023e57ed"
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     lateinit var trackingFragment: TrackingFragment
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MapKitFactory.setApiKey(MAP_KIT_API_KEY)
         initFields()
         initFunc(savedInstanceState)
 
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             navigation.setOnNavigationItemSelectedListener { item ->
                 when (item.itemId) {
                     R.id.track -> {
-                        initUserTracks()
+
 
                         trackingFragment = TrackingFragment.newInstance()
                         ReplaceFragment(trackingFragment)
@@ -76,6 +78,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         true
                     }
                     R.id.list -> {
+                        initUserTracks()
                         ReplaceFragment(TrackListFragment.newInstance())
                         true
                     }
@@ -95,16 +98,18 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun initFields() {
         initFirebase()
         initUser()
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun initUser() {
         REF_DATABASE_ROOT.child(NODE_USERS).child(UID)
             .addListenerForSingleValueEvent(AppValueEventListener {
                 USER = it.getValue(User::class.java) ?: User()
-                initUserTracks()
+                //initUserTracks()
             })
     }
 
