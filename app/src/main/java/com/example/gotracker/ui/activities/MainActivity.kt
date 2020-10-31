@@ -23,13 +23,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 const val PERMISSION_REQUEST_CODE = 7
 const val LOC_PARAMS = 1
-private val MAP_KIT_API_KEY = "6a3e8505-4082-499a-ba52-2a5c023e57ed"
+
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     lateinit var trackingFragment: TrackingFragment
+
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MapKitFactory.setApiKey(MAP_KIT_API_KEY)
+
+//        MapKitFactory.setApiKey(MAP_KIT_API_KEY)
         initFields()
         initFunc(savedInstanceState)
 
@@ -78,11 +81,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         true
                     }
                     R.id.list -> {
-                        initUserTracks()
                         ReplaceFragment(TrackListFragment.newInstance())
+
                         true
                     }
                     R.id.statistic -> {
+
                         ReplaceFragment(FragmentStatistic.newInstance())
                         true
                     }

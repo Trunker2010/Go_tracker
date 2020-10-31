@@ -1,24 +1,20 @@
 package com.example.gotracker.utils
 
+import android.app.Activity
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.gotracker.START_TRACKING
 import com.example.gotracker.model.User
 import com.example.gotracker.model.UserTrack
 import com.example.gotracker.ui.fragments.TYPE_CONTENT
 import com.example.gotracker.ui.fragments.TYPE_DATE
+import com.example.gotracker.ui.fragments.TrackListFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.yandex.mapkit.geometry.Point
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.awaitAll
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 
 lateinit var AUTH: FirebaseAuth
@@ -49,80 +45,88 @@ fun initFirebase() {
     UID = AUTH.currentUser?.uid.toString()
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
-fun initUserTracks() {
-    executor = Executors.newSingleThreadExecutor()
-    var userTrack = UserTrack(TYPE_CONTENT)
-    userTracks = mutableListOf()
-    REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-        .addListenerForSingleValueEvent(AppValueEventListener  {
-
-
-            it.children.forEach { trackID ->
-
-
-                executor.execute {
-
-                    userTrack = UserTrack(TYPE_CONTENT)
-
-                    Log.d("dbThread", Thread.currentThread().name)
-
-                    userTrack.distance =
-                        trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-
-                    userTrack.time = LocationConverter.convertMStoTime(
-                        trackID.child(CHILD_TIME).getValue(Long::class.java)!!
-                    )
-                    userTrack.startTime =
-                        timeToDate(
-                            trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
-                        )
-
-
-
-                }
-
-
-
-                REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-                    .child(trackID.key.toString()).child(
-                        CHILD_TRACK_POINTS
-                    ).addListenerForSingleValueEvent(AppValueEventListener { tracks ->
-
-                        tracks.children.forEach { points ->
-                            executor.execute {
-                                Log.d("dbThread", Thread.currentThread().name)
-                                var pointsList = mutableListOf<Point>()
-
-                                 points.children.forEach { point ->
-                                    pointsList.add(
-                                        Point(
-
-                                            point.child(CHILD_LATITUDE)
-                                                .getValue(Double::class.java) as Double,
-                                            point.child(CHILD_LONGITUDE)
-                                                .getValue(Double::class.java) as Double
-                                        )
-                                    )
-                                }
-
-
-                                userTrack.trackPoints =  pointsList
-                            }
-                        }
-
-                        userTracks.add(userTrack)
-                    }
-                    )
-
-
-            }
-
-
-        })
-
+fun saveUserTrack() {
 
 }
+
+@RequiresApi(Build.VERSION_CODES.N)
+//fun initUserTracks(startFragment: () -> Unit) {
+//    //executor = Executors.newSingleThreadExecutor()
+//    var userTrack = UserTrack(TYPE_CONTENT)
+//
+//    userTracks = mutableListOf()
+//
+//    REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
+//        .addListenerForSingleValueEvent(AppValueEventListener { rootSnapshot ->
+//
+//
+//            rootSnapshot.children.forEach { trackID ->
+//
+//                Log.d("count", rootSnapshot.children.count().toString())
+//                //executor.execute {
+//
+//                userTrack = UserTrack(TYPE_CONTENT)
+//
+//
+//
+//                userTrack.distance =
+//                    trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
+//
+//                userTrack.time = LocationConverter.convertMStoTime(
+//                    trackID.child(CHILD_TIME).getValue(Long::class.java)!!
+//                )
+//                userTrack.startTime =
+//                    timeToDate(
+//                        trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+//                    )
+//
+//
+////                }
+//
+//
+//                REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
+//                    .child(trackID.key.toString()).child(
+//                        CHILD_TRACK_POINTS
+//                    ).addListenerForSingleValueEvent(AppValueEventListener { tracks ->
+//
+//                        tracks.children.forEach { points ->
+////                            executor.execute {
+//                            Log.d("dbThread", Thread.currentThread().name)
+//                            var pointsList = mutableListOf<Point>()
+//
+//                            points.children.forEach { point ->
+//                                pointsList.add(
+//                                    Point(
+//
+//                                        point.child(CHILD_LATITUDE)
+//                                            .getValue(Double::class.java) as Double,
+//                                        point.child(CHILD_LONGITUDE)
+//                                            .getValue(Double::class.java) as Double
+//                                    )
+//                                )
+//                            }
+//
+//
+//                            userTrack.trackPoints = pointsList
+////                            }
+//                        }
+//
+//                        userTracks.add(userTrack)
+//                        Log.d("countAndSize", "${rootSnapshot.children.count()} ${userTracks.size}")
+//                        if (rootSnapshot.children.count() == userTracks.size) {
+//
+//                            Log.d("countAndSize", "if=true")
+//                        }
+//                    }
+//                    )
+//
+//            }
+//
+//
+//        })
+//
+//
+//}
 
 fun sortTracks() {
     userTracks.sortByDescending { it.startTime }

@@ -13,7 +13,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.gotracker.R
 import com.example.gotracker.databinding.FragmentTrackingBinding
-import com.example.gotracker.utils.initUserTracks
+
 
 
 class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
@@ -68,7 +68,7 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
                 dismiss()
             }
             R.id.save_btn -> {
-                initUserTracks()
+
                 targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
                 dismiss()
 

@@ -2,7 +2,7 @@ package com.example.gotracker.model
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.gotracker.utils.initUserTracks
+
 
 class Preload {
 
@@ -19,7 +19,7 @@ class Preload {
 
     @RequiresApi(Build.VERSION_CODES.N)
     public fun doPreload() {
-        initUserTracks()
+
         callback.callingBack()
 
 

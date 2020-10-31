@@ -1,8 +1,6 @@
 package com.example.gotracker.ui.fragments
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -14,7 +12,6 @@ import androidx.preference.PreferenceFragmentCompat
 import com.example.gotracker.R
 import com.example.gotracker.ui.activities.RegisterActivity
 import com.example.gotracker.utils.*
-import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.fragment_settings.*
 
 /**
