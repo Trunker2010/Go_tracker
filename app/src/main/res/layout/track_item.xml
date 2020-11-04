@@ -49,6 +49,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0000"
+
                     app:layout_constraintStart_toEndOf="@+id/card_distance"
                     app:layout_constraintTop_toTopOf="parent" />
             </LinearLayout>

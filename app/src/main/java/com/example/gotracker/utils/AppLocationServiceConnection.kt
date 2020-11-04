@@ -4,7 +4,8 @@ import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.example.gotracker.LocationService
-
+const val PERMISSION_REQUEST_CODE = 7
+const val LOC_PARAMS = 1
 class AppLocationServiceConnection : ServiceConnection {
 
     lateinit var locationService: LocationService

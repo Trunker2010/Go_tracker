@@ -17,7 +17,6 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.example.gotracker.LocationService
 import com.example.gotracker.R
-import com.example.gotracker.STOP_LOC_SERVICE
 import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
 import com.example.gotracker.ui.activities.LOC_PARAMS
@@ -34,10 +33,6 @@ import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
-import java.io.Serializable
 import java.util.*
 
 
@@ -114,7 +109,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         ))
         binding.currentTime.text = locParams.time
-        drawTrackPoints(locParams.tracks_points)
+        drawTrackPoints(locParams.trackPoints)
 
     }
 
@@ -399,7 +394,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.distance = locationService.distanceKm
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
-                    locParams.tracks_points = locationService.tracks
+                    locParams.trackPoints = locationService.tracks
                     locParams.time = locationService.trackTimer.currentTime
                     locParams.timeMS = locationService.trackTimer.durationTime
 

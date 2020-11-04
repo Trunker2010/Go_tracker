@@ -11,14 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.R
-import com.example.gotracker.model.Preload
-import com.example.gotracker.model.Preload.Callback
 import com.example.gotracker.model.User
 import com.example.gotracker.ui.fragments.FragmentStatistic
 import com.example.gotracker.ui.fragments.TrackListFragment
 import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.*
-import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 const val PERMISSION_REQUEST_CODE = 7
@@ -119,7 +116,3 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
 }
-
-
-
-

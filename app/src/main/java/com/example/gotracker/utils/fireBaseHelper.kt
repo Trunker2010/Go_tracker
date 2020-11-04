@@ -1,19 +1,12 @@
 package com.example.gotracker.utils
 
-import android.app.Activity
-import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
+import com.example.gotracker.model.Date
 import com.example.gotracker.model.User
 import com.example.gotracker.model.UserTrack
-import com.example.gotracker.ui.fragments.TYPE_CONTENT
-import com.example.gotracker.ui.fragments.TYPE_DATE
-import com.example.gotracker.ui.fragments.TrackListFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.yandex.mapkit.geometry.Point
 import java.util.concurrent.ExecutorService
 
 
@@ -22,7 +15,7 @@ lateinit var REF_DATABASE_ROOT: DatabaseReference
 lateinit var USER: User
 
 lateinit var UID: String
-lateinit var userTracks: MutableList<UserTrack>
+lateinit var userTracks: MutableList<Any>
 
 const val NODE_TRACKS = "tracks"
 const val CHILD_LONGITUDE = "longitude"
@@ -49,104 +42,33 @@ fun saveUserTrack() {
 
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
-//fun initUserTracks(startFragment: () -> Unit) {
-//    //executor = Executors.newSingleThreadExecutor()
-//    var userTrack = UserTrack(TYPE_CONTENT)
-//
-//    userTracks = mutableListOf()
-//
-//    REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-//        .addListenerForSingleValueEvent(AppValueEventListener { rootSnapshot ->
-//
-//
-//            rootSnapshot.children.forEach { trackID ->
-//
-//                Log.d("count", rootSnapshot.children.count().toString())
-//                //executor.execute {
-//
-//                userTrack = UserTrack(TYPE_CONTENT)
-//
-//
-//
-//                userTrack.distance =
-//                    trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-//
-//                userTrack.time = LocationConverter.convertMStoTime(
-//                    trackID.child(CHILD_TIME).getValue(Long::class.java)!!
-//                )
-//                userTrack.startTime =
-//                    timeToDate(
-//                        trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
-//                    )
-//
-//
-////                }
-//
-//
-//                REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-//                    .child(trackID.key.toString()).child(
-//                        CHILD_TRACK_POINTS
-//                    ).addListenerForSingleValueEvent(AppValueEventListener { tracks ->
-//
-//                        tracks.children.forEach { points ->
-////                            executor.execute {
-//                            Log.d("dbThread", Thread.currentThread().name)
-//                            var pointsList = mutableListOf<Point>()
-//
-//                            points.children.forEach { point ->
-//                                pointsList.add(
-//                                    Point(
-//
-//                                        point.child(CHILD_LATITUDE)
-//                                            .getValue(Double::class.java) as Double,
-//                                        point.child(CHILD_LONGITUDE)
-//                                            .getValue(Double::class.java) as Double
-//                                    )
-//                                )
-//                            }
-//
-//
-//                            userTrack.trackPoints = pointsList
-////                            }
-//                        }
-//
-//                        userTracks.add(userTrack)
-//                        Log.d("countAndSize", "${rootSnapshot.children.count()} ${userTracks.size}")
-//                        if (rootSnapshot.children.count() == userTracks.size) {
-//
-//                            Log.d("countAndSize", "if=true")
-//                        }
-//                    }
-//                    )
-//
-//            }
-//
-//
-//        })
-//
-//
-//}
 
-fun sortTracks() {
-    userTracks.sortByDescending { it.startTime }
+fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
+    (it as? UserTrack)?.startDate
 }
 
 fun difTrackDate() {
     if (userTracks.size >= 1) {
-        var firstDate = userTracks[0].startTime
 
-        userTracks.add(0, UserTrack(TYPE_DATE))
-        userTracks[0].startTime = firstDate
+        var firstDate = (userTracks[0] as Date).startDate
+        val date = Date()
+        date.startDate = firstDate
+        userTracks.add(0, date)
+
+//        userTracks[0].startTime = firstDate
 
 
         for (i in userTracks.indices) {
 
-            if (userTracks.size > i + 1 && userTracks[i + 1].type != TYPE_DATE) {
-                if (userTracks[i].startTime != userTracks[i + 1].startTime) {
-                    var bufDate = userTracks[i + 1].startTime
-                    userTracks.add(i + 1, UserTrack(TYPE_DATE))
-                    userTracks[i + 1].startTime = bufDate
+            if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
+
+                if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
+
+                    val bufDate = (userTracks[i + 1] as Date).startDate
+                    val date = Date()
+                    date.startDate = bufDate
+                    userTracks.add(i + 1, date)
+//                    userTracks[i + 1].startTime = bufDate
                     i.inc()
                     Log.d("difTrackDate", userTracks.size.toString())
                 }
