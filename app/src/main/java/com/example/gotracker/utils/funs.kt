@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.gotracker.R
 import android.content.Intent
+import java.text.SimpleDateFormat
 import java.util.*
 
 fun AppCompatActivity.ReplaceFragment(fragment: Fragment) {
@@ -43,11 +44,24 @@ fun Fragment.showToast(text: String) {
 
 }
 
-fun timeToDate(time: Long): String {
+fun timeMsToDate(time: Long): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = time
     return ("${calendar.get(Calendar.DAY_OF_MONTH)}.${calendar.get(Calendar.MONTH)}.${
         calendar.get(Calendar.YEAR)
     }")
+}
 
+fun timeMsToTime(time: Long): String {
+    val calendar = Calendar.getInstance()
+
+
+    calendar.timeInMillis = time
+
+    val time = SimpleDateFormat("H:m:s").parse(
+        "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${
+            calendar.get(Calendar.SECOND)
+        }"
+    )
+    return SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(time)
 }

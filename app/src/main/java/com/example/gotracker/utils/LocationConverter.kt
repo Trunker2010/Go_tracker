@@ -1,5 +1,7 @@
 package com.example.gotracker.utils
 
+import java.util.*
+
 class LocationConverter {
     companion object {
         fun convertSpeed(meterPerSecond: Float): Float {
@@ -12,11 +14,11 @@ class LocationConverter {
         }
 
         fun convertMStoTime(timeInMS: Long): String {
+
+
             var secs = (timeInMS / 1000).toInt()
             var minutes = secs / 60
             secs %= 60
-            var milliseconds = (timeInMS % 100).toInt()
-
             return "$minutes:${String.format("%02d", secs)}"/*:${String.format("%02d", milliseconds)}*/
         }
     }

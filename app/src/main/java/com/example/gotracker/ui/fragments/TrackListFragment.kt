@@ -33,7 +33,12 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             .addListenerForSingleValueEvent(AppValueEventListener { rootSnapshot ->
 
                 rootSnapshot.children.forEach { trackID ->
-                    val userTrack = UserTrack()
+                    var userTrack = UserTrack()
+                    userTrack.trackID = trackID.key.toString()
+
+                    val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+
+
 
                     userTrack.distance =
                         trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
@@ -42,9 +47,9 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                         trackID.child(CHILD_TIME).getValue(Long::class.java)!!
                     )
                     userTrack.startDate =
-                        timeToDate(
-                            trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
-                        )
+                        timeMsToDate(time)
+                    userTrack.start_time = timeMsToTime(time)
+
 
                     REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
                         .child(trackID.key.toString()).child(
@@ -79,7 +84,10 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                                 sortTracks()
                                 difTrackDate()
                                 loadTracksProgressBar.visibility = View.GONE
+
                                 rv_tracks.adapter = DataAdapter()
+
+
                             }
                         }
                         )
@@ -119,6 +127,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     class DataAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+
         override fun getItemViewType(position: Int): Int {
             return when (userTracks[position]) {
                 is UserTrack -> R.layout.track_item
@@ -128,10 +137,34 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             }
         }
 
-        class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+            View.OnClickListener {
+
+            init {
+                itemView.setOnClickListener(this)
+            }
+
+            lateinit var mUserTrack: UserTrack
             val distance: TextView = itemView.card_distance_params
-            val time: TextView = itemView.card_time_params
-            val date: TextView = itemView.card_date
+            val duration: TextView = itemView.card_duration_params
+            val startTime: TextView = itemView.card_star_time
+
+
+            override fun onClick(v: View?) {
+                if (v == itemView) {
+
+                }
+
+
+            }
+
+
+            fun bindTrack(userTrack: UserTrack) {
+                mUserTrack = userTrack
+
+            }
+
+
         }
 
         class DateHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -148,6 +181,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                 view =
                     LayoutInflater.from(parent.context)
                         .inflate(R.layout.track_item, parent, false)
+
 
                 TrackHolder(view)
             }
@@ -169,12 +203,12 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
                 is TrackHolder -> {
                     (userTracks[position] as UserTrack).let { userTrack ->
-
+                        holder.bindTrack(userTrack)
                         holder.distance.text =
-                            String.format(Locale.getDefault(), "%.2f", userTrack.distance)
-                                .padEnd(8, ' ')
-                        holder.time.text = userTrack.time
-                        holder.date.text = userTrack.startDate
+                            "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
+                        holder.duration.text = userTrack.time
+                        holder.startTime.text = userTrack.start_time
+
                     }
                 }
             }
