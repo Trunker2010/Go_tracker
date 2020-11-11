@@ -1,17 +1,24 @@
 package com.example.gotracker.ui.fragments
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gotracker.R
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
+import com.example.gotracker.ui.activities.MainActivity
+import com.example.gotracker.ui.activities.TrackInfoActivity
 import com.example.gotracker.utils.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -22,22 +29,28 @@ import kotlinx.android.synthetic.main.fragment_track_list.*
 import kotlinx.android.synthetic.main.track_item.view.*
 import kotlinx.android.synthetic.main.date_item.view.*
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
+const val TRACK_ID = "track_id"
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
-    var listeners: MutableMap<DatabaseReference, ValueEventListener> = mutableMapOf()
     private lateinit var pointEventListener: AppValueEventListener
     var isCanceled = false
+
     val trackEventListener = object : ValueEventListener {
 
         override fun onDataChange(rootSnapshot: DataSnapshot) {
             rootSnapshot.children.forEach { trackID ->
                 val userTrack = createTrack(trackID)
 
-                pointEventListener = AppValueEventListener { tracks ->
+                pointEventListener = AppValueEventListener { pointsGroup ->
 
-                    tracks.children.forEach { points ->
+                    pointsGroup.children.forEach { points ->
                         userTrack.trackPoints = createPoints(points)
+
+
+                        Log.d("pointsGroup", "id =${userTrack.trackID} points= ${userTrack.trackPoints.size}")
+
 
                     }
                     userTracks.add(userTrack)
@@ -46,18 +59,19 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                     if (rootSnapshot.children.count() == userTracks.size) {
                         sortTracks()
                         difTrackDate()
-                        if (loadTracksProgressBar !=null){
+                        if (loadTracksProgressBar != null) {
                             loadTracksProgressBar.visibility = View.GONE
                             rv_tracks.adapter = DataAdapter()
                         }
 
                     }
                 }
+
                 val trackIdRef = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
                     .child(trackID.key.toString()).child(
                         CHILD_TRACK_POINTS
                     )
-                listeners[trackIdRef] = pointEventListener
+
 
                 trackIdRef.addListenerForSingleValueEvent(
                     pointEventListener
@@ -79,40 +93,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         userTracks = mutableListOf()
         val tracksRefs = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
 
-        listeners[tracksRefs] = trackEventListener
         tracksRefs
             .addListenerForSingleValueEvent(trackEventListener)
-    }
-
-    private fun createPoints(points: DataSnapshot): MutableList<Point> {
-        val pointsList = mutableListOf<Point>()
-
-        points.children.forEach { point ->
-            pointsList.add(
-                Point(
-                    point.child(CHILD_LATITUDE)
-                        .getValue(Double::class.java) as Double,
-                    point.child(CHILD_LONGITUDE)
-                        .getValue(Double::class.java) as Double
-                )
-            )
-        }
-        return pointsList
-    }
-
-    private fun createTrack(trackID: DataSnapshot): UserTrack {
-        val userTrack = UserTrack()
-        userTrack.trackID = trackID.key.toString()
-        val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
-        userTrack.distance =
-            trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-        userTrack.time = LocationConverter.convertMStoTime(
-            trackID.child(CHILD_TIME).getValue(Long::class.java)!!
-        )
-        userTrack.startDate =
-            timeMsToDate(time)
-        userTrack.start_time = timeMsToTime(time)
-        return userTrack
     }
 
 
@@ -139,9 +121,10 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         super.onResume()
         isCanceled = false
         initUserTracks()
+
     }
 
-    class DataAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    inner class DataAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
 
         override fun getItemViewType(position: Int): Int {
@@ -153,7 +136,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             }
         }
 
-        class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        inner class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
             View.OnClickListener {
 
             init {
@@ -167,13 +150,13 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
 
             override fun onClick(v: View?) {
-                if (v == itemView) {
 
-                }
+                val intent = Intent(this@TrackListFragment.context, TrackInfoActivity::class.java)
+                intent.putExtra(TRACK_ID, mUserTrack.trackID)
 
-
+                Log.d("mUserTrack.trackID", mUserTrack.trackID)
+                this@TrackListFragment.startActivity(intent)
             }
-
 
             fun bindTrack(userTrack: UserTrack) {
                 mUserTrack = userTrack
@@ -183,7 +166,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
         }
 
-        class DateHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        inner class DateHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val date: TextView = itemView.date_item
         }
 
@@ -241,14 +224,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     override fun onPause() {
         super.onPause()
-        removeListeners()
-        isCanceled = true
-
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun removeListeners() {
-        listeners.forEach { (ref, listener) -> ref.removeEventListener(listener) }
 
-    }
 }

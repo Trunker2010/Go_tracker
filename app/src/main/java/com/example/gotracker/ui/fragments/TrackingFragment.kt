@@ -170,9 +170,9 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentTrackingBinding.inflate(layoutInflater)
-        binding.mapview.map.isRotateGesturesEnabled = true
+        binding.trackingMapView.map.isRotateGesturesEnabled = true
         mapKit = MapKitFactory.getInstance()
-        userLocationLayer = mapKit.createUserLocationLayer(binding.mapview.mapWindow)
+        userLocationLayer = mapKit.createUserLocationLayer(binding.trackingMapView.mapWindow)
         userLocationLayer.isHeadingEnabled = true
         userLocationLayer.isVisible = true
         userLocationLayer.setObjectListener(this)
@@ -182,7 +182,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         binding.pauseBtn.setOnClickListener(this)
         binding.settingsBtn.setOnClickListener(this)
         binding.resumeBtn.setOnClickListener(this)
-        mapObjects = binding.mapview.map.mapObjects.addCollection()
+        mapObjects = binding.trackingMapView.map.mapObjects.addCollection()
 
 
         setButton()
@@ -195,7 +195,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         super.onStart()
 
         MapKitFactory.getInstance().onStart()
-        binding.mapview.onStart()
+        binding.trackingMapView.onStart()
 
 
     }
@@ -217,7 +217,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     override fun onStop() {
-        binding.mapview.onStop()
+        binding.trackingMapView.onStop()
         MapKitFactory.getInstance().onStop()
 
 
@@ -286,7 +286,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
             R.id.start_btn -> {
 
-                mapObjects = binding.mapview.map.mapObjects.addCollection()
+                mapObjects = binding.trackingMapView.map.mapObjects.addCollection()
                 setCamera()
 
 
@@ -466,7 +466,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         if (locParams.latitude != 0.0) {
             val pos = Point(locParams.latitude, locParams.longitude)
-            binding.mapview.map.move(
+            binding.trackingMapView.map.move(
                 CameraPosition(pos, 15.0f, 0.0f, 0.0f),
                 Animation(Animation.Type.LINEAR, 0.3F),
                 null

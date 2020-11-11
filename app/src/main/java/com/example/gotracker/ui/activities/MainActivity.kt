@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        MapKitFactory.setApiKey(MAP_KIT_API_KEY)
         initFields()
         initFunc(savedInstanceState)
 
@@ -71,6 +70,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
 
                         trackingFragment = TrackingFragment.newInstance()
+
+
                         ReplaceFragment(trackingFragment)
 
 

@@ -5,9 +5,27 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.gotracker.R
 import android.content.Intent
+import com.example.gotracker.model.UserTrack
+import com.google.firebase.database.DataSnapshot
+import com.yandex.mapkit.geometry.Point
 import java.text.SimpleDateFormat
 import java.util.*
 
+fun createTrack(trackID: DataSnapshot): UserTrack {
+    val userTrack = UserTrack()
+    userTrack.trackID = trackID.key.toString()
+
+    val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+    userTrack.distance =
+        trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
+    userTrack.time = LocationConverter.convertMStoTime(
+        trackID.child(CHILD_TIME).getValue(Long::class.java)!!
+    )
+    userTrack.startDate =
+        timeMsToDate(time)
+    userTrack.start_time = timeMsToTime(time)
+    return userTrack
+}
 fun AppCompatActivity.ReplaceFragment(fragment: Fragment) {
     if (fragment.isAdded) {
         return
@@ -18,6 +36,22 @@ fun AppCompatActivity.ReplaceFragment(fragment: Fragment) {
             .commit()
     }
 
+}
+
+fun createPoints(points: DataSnapshot): MutableList<Point> {
+    val pointsList = mutableListOf<Point>()
+
+    points.children.forEach { point ->
+        pointsList.add(
+            Point(
+                point.child(CHILD_LATITUDE)
+                    .getValue(Double::class.java) as Double,
+                point.child(CHILD_LONGITUDE)
+                    .getValue(Double::class.java) as Double
+            )
+        )
+    }
+    return pointsList
 }
 
 fun AppCompatActivity.replaceActivity(activity: AppCompatActivity) {
