@@ -44,7 +44,7 @@ fun saveUserTrack() {
 
 
 fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
-    (it as? UserTrack)?.startDate
+    (it as? UserTrack)?.startTimeInMs
 }
 
 fun difTrackDate() {
@@ -55,7 +55,7 @@ fun difTrackDate() {
         date.startDate = firstDate
         userTracks.add(0, date)
 
-//        userTracks[0].startTime = firstDate
+        (userTracks[0] as Date).startDate = firstDate
 
 
         for (i in userTracks.indices) {
@@ -68,7 +68,7 @@ fun difTrackDate() {
                     val date = Date()
                     date.startDate = bufDate
                     userTracks.add(i + 1, date)
-//                    userTracks[i + 1].startTime = bufDate
+                    (userTracks[i + 1] as Date).startDate = bufDate
                     i.inc()
                     Log.d("difTrackDate", userTracks.size.toString())
                 }

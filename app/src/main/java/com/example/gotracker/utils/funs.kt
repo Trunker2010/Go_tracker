@@ -16,16 +16,19 @@ fun createTrack(trackID: DataSnapshot): UserTrack {
     userTrack.trackID = trackID.key.toString()
 
     val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+    userTrack.startTimeInMs = time
     userTrack.distance =
         trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-    userTrack.time = LocationConverter.convertMStoTime(
+    userTrack.activeDuration = LocationConverter.convertMStoTime(
         trackID.child(CHILD_TIME).getValue(Long::class.java)!!
     )
+
     userTrack.startDate =
         timeMsToDate(time)
-    userTrack.start_time = timeMsToTime(time)
+    userTrack.startTime = timeMsToTime(time)
     return userTrack
 }
+
 fun AppCompatActivity.ReplaceFragment(fragment: Fragment) {
     if (fragment.isAdded) {
         return
@@ -51,6 +54,7 @@ fun createPoints(points: DataSnapshot): MutableList<Point> {
             )
         )
     }
+
     return pointsList
 }
 

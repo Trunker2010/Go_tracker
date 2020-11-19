@@ -1,7 +1,5 @@
 package com.example.gotracker.ui.fragments
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,27 +9,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gotracker.R
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
-import com.example.gotracker.ui.activities.MainActivity
 import com.example.gotracker.ui.activities.TrackInfoActivity
 import com.example.gotracker.utils.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.yandex.mapkit.geometry.Point
 import kotlinx.android.synthetic.main.fragment_track_list.*
 import kotlinx.android.synthetic.main.track_item.view.*
 import kotlinx.android.synthetic.main.date_item.view.*
 import java.util.*
-import kotlin.coroutines.coroutineContext
 
 const val TRACK_ID = "track_id"
+const val TRACK_DISTANCE = "track_distance"
+const val TRACK_DURATION = "track_duration"
+
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     private lateinit var pointEventListener: AppValueEventListener
@@ -43,39 +39,22 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             rootSnapshot.children.forEach { trackID ->
                 val userTrack = createTrack(trackID)
 
-                pointEventListener = AppValueEventListener { pointsGroup ->
-
-                    pointsGroup.children.forEach { points ->
-                        userTrack.trackPoints = createPoints(points)
+                userTracks.add(userTrack)
 
 
-                        Log.d("pointsGroup", "id =${userTrack.trackID} points= ${userTrack.trackPoints.size}")
-
-
+                if (rootSnapshot.children.count() == userTracks.size) {
+                    sortTracks()
+                    difTrackDate()
+                    if (loadTracksProgressBar != null) {
+                        loadTracksProgressBar.visibility = View.GONE
+                        rv_tracks.adapter = DataAdapter()
                     }
-                    userTracks.add(userTrack)
 
-
-                    if (rootSnapshot.children.count() == userTracks.size) {
-                        sortTracks()
-                        difTrackDate()
-                        if (loadTracksProgressBar != null) {
-                            loadTracksProgressBar.visibility = View.GONE
-                            rv_tracks.adapter = DataAdapter()
-                        }
-
-                    }
                 }
 
-                val trackIdRef = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
-                    .child(trackID.key.toString()).child(
-                        CHILD_TRACK_POINTS
-                    )
 
 
-                trackIdRef.addListenerForSingleValueEvent(
-                    pointEventListener
-                )
+
 
 
             }
@@ -153,6 +132,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
                 val intent = Intent(this@TrackListFragment.context, TrackInfoActivity::class.java)
                 intent.putExtra(TRACK_ID, mUserTrack.trackID)
+                intent.putExtra(TRACK_DISTANCE, mUserTrack.distance)
+                intent.putExtra(TRACK_DURATION, mUserTrack.activeDuration)
 
                 Log.d("mUserTrack.trackID", mUserTrack.trackID)
                 this@TrackListFragment.startActivity(intent)
@@ -205,8 +186,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                         holder.bindTrack(userTrack)
                         holder.distance.text =
                             "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
-                        holder.duration.text = userTrack.time
-                        holder.startTime.text = userTrack.start_time
+                        holder.duration.text = userTrack.activeDuration
+                        holder.startTime.text = userTrack.startTime
 
                     }
                 }

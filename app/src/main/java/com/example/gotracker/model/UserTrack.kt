@@ -5,12 +5,25 @@ import com.yandex.mapkit.geometry.Point
 import java.util.*
 
 class UserTrack() : Date() {
+
     var trackID = ""
-    var start_time = ""
+    var startTime = ""
     var distance = 0.0
-    var time = ""
-    var trackPoints: MutableList<Point> = mutableListOf()
-        }
+    var activeDuration = ""
+    var trackPoints: MutableList<MutableList<Point>> = mutableListOf()
+
+    constructor(
+        trackID: String,
+        distance: Double,
+        activeDuration: String,
+        trackPoints: MutableList<MutableList<Point>>
+    ) : this() {
+        this.trackID = trackID
+        this.distance = distance
+        this.activeDuration = activeDuration
+        this.trackPoints = trackPoints
+    }
+}
 
 
 
