@@ -84,7 +84,7 @@
                         android:fontFamily="@font/digital7"
                         android:paddingHorizontal="4dp"
 
-                        android:text="@string/distance" />
+                        android:text="@string/dst" />
 
                     <TextView
                         android:id="@+id/distance_m"

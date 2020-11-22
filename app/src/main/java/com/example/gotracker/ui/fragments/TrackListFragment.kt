@@ -27,13 +27,15 @@ import java.util.*
 const val TRACK_ID = "track_id"
 const val TRACK_DISTANCE = "track_distance"
 const val TRACK_DURATION = "track_duration"
+const val TRACK_START_TIME = "track_start_time"
+const val TRACK_START_DATE="track_start_date"
 
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
-    private lateinit var pointEventListener: AppValueEventListener
+
     var isCanceled = false
 
-    val trackEventListener = object : ValueEventListener {
+    private val trackEventListener = object : ValueEventListener {
 
         override fun onDataChange(rootSnapshot: DataSnapshot) {
             rootSnapshot.children.forEach { trackID ->
@@ -51,10 +53,6 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                     }
 
                 }
-
-
-
-
 
 
             }
@@ -134,8 +132,11 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                 intent.putExtra(TRACK_ID, mUserTrack.trackID)
                 intent.putExtra(TRACK_DISTANCE, mUserTrack.distance)
                 intent.putExtra(TRACK_DURATION, mUserTrack.activeDuration)
+                intent.putExtra(TRACK_START_TIME, mUserTrack.startTime)
+                intent.putExtra(TRACK_START_DATE, mUserTrack.startDate)
 
-                Log.d("mUserTrack.trackID", mUserTrack.trackID)
+
+                Log.d("mUserTrack.trackID", mUserTrack.startTime)
                 this@TrackListFragment.startActivity(intent)
             }
 
@@ -201,10 +202,6 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         fun newInstance(): TrackListFragment {
             return TrackListFragment()
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
 

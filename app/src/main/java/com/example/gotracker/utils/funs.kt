@@ -29,7 +29,7 @@ fun createTrack(trackID: DataSnapshot): UserTrack {
     return userTrack
 }
 
-fun AppCompatActivity.ReplaceFragment(fragment: Fragment) {
+fun AppCompatActivity.replaceFragment(fragment: Fragment) {
     if (fragment.isAdded) {
         return
     } else {

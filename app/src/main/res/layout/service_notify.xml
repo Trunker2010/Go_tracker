@@ -46,7 +46,7 @@
                 <TextView
                     android:id="@+id/distance_notify_labile"
                     style="@style/notify_lable"
-                    android:text="@string/distance" />
+                    android:text="@string/dst" />
 
                 <TextView
                     android:id="@+id/card_distance_params"

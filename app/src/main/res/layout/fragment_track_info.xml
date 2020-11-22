@@ -1,140 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_scrollFlags="enterAlways">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
 
     <com.yandex.mapkit.mapview.MapView
+
         android:id="@+id/trackMapView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/trackInfoLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_weight="3" />
+        android:layout_height="match_parent" />
 
-    <ScrollView
-        android:id="@+id/trackInfoLayout"
+    <LinearLayout
+
+        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/trackMapView"
-        app:layout_constraintVertical_weight="1">
+        android:layout_height="340dp"
+        android:background="@drawable/rectangle_bottom_sheet"
+        android:clipChildren="true"
+        android:orientation="vertical"
+        app:behavior_hideable="false"
+        app:behavior_peekHeight="80dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <TextView
+            android:id="@+id/main_info"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="@drawable/rectangle_inner"
+            android:gravity="center"
+            android:padding="6dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:autoSizeMaxTextSize="@dimen/big_text" />
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <TableLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp">
+
+            <TableRow
+                android:id="@+id/distance_row"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp">
+
+                <TextView android:text="@string/distance" />
+
+                <TextView
+                    android:id="@+id/distance_params"
+                    style="@style/row_params_text"
+                    android:gravity="center"
+                    android:text="0:00" />
 
 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            </TableRow>
+            <TableRow
+                android:id="@+id/duration_row"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:padding="8dp">
 
-            <TextView
+                <TextView
+                    android:text="@string/duration" />
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
+                <TextView
+                    android:id="@+id/duration_params"
+                    style="@style/row_params_text"
+                    android:text="0000"
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
+                    />
+            </TableRow>
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
+            <TableRow
+                android:id="@+id/av_speed_row"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp">
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
+                <TextView android:text="@string/average_speed" />
 
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />            <TextView
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdaaaaaaaaaaaaa" />
+                <TextView
+                    android:text="0000"
+                    android:id="@+id/av_speed_params"
+                    style="@style/row_params_text" />
 
 
-        </LinearLayout>
-    </ScrollView>
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/max_speed_row"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:padding="8dp">
+
+                <TextView
+                    android:text="@string/max_speed" />
+
+                <TextView
+                    android:id="@+id/max_speed_params"
+                    style="@style/row_params_text"
+                    android:text="0000"
+
+                    />
+            </TableRow>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+        </TableLayout>
+
+
+    </LinearLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

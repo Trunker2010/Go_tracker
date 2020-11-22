@@ -20,5 +20,7 @@
     <color name="params_bg">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="date_background">#8A8A8A</color>
+    <color name="light_gray">#FFFFFF</color>
+    <color name="bottom_sheet_stroke_color">#DBDBDB</color>
 
 </resources>

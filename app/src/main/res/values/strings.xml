@@ -8,7 +8,7 @@
     <string name="statistic">Статистика</string>
     <string name="start">start</string>
     <string name="speed">Speed:</string>
-    <string name="distance">DST:</string>
+    <string name="dst">DST:</string>
     <string name="stop_btn">stop</string>
     <string name="stop">stop</string>
     <string name="pause">pause</string>
@@ -42,5 +42,8 @@
     <string name="settings_phone_number">settings_phone_number</string>
     <string name="time">TIME:</string>
     <string name="resume">resume</string>
+    <string name="average_speed">Средняя скорость</string>
+    <string name="max_speed">Максимальная скорость:</string>
+    <string name="distance">Дистанция:</string>
 
 </resources>

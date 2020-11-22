@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             if (savedInstanceState == null) {
 
                 trackingFragment = TrackingFragment.newInstance()
-                ReplaceFragment(trackingFragment)
+                replaceFragment(trackingFragment)
             }
 
             navigation.setOnNavigationItemSelectedListener { item ->
@@ -72,20 +72,20 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         trackingFragment = TrackingFragment.newInstance()
 
 
-                        ReplaceFragment(trackingFragment)
+                        replaceFragment(trackingFragment)
 
 
                         //checkPermission()
                         true
                     }
                     R.id.list -> {
-                        ReplaceFragment(TrackListFragment.newInstance())
+                        replaceFragment(TrackListFragment.newInstance())
 
                         true
                     }
                     R.id.statistic -> {
 
-                        ReplaceFragment(FragmentStatistic.newInstance())
+                        replaceFragment(FragmentStatistic.newInstance())
                         true
                     }
                     else -> false

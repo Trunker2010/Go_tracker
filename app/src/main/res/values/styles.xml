@@ -78,5 +78,12 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <style name="row_params_text">
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:textColor">#101010</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold|italic</item>
+    </style>
+
 
 </resources>

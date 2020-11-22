@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import com.example.gotracker.R
-import com.example.gotracker.ui.fragments.TRACK_ID
-import com.example.gotracker.ui.fragments.TrackInfoFragment
+import com.example.gotracker.ui.fragments.*
 import kotlinx.android.synthetic.main.activity_track_info.*
 
 class TrackInfoActivity : AppCompatActivity() {
@@ -21,12 +20,15 @@ class TrackInfoActivity : AppCompatActivity() {
         super.onStart()
         val extras = intent.extras
         if (extras != null) {
-            val trackId = extras.getString(TRACK_ID)
-            Log.d("TrackInfoActivity", trackId)
-            val args = Bundle()
-            args.putString(TRACK_ID, trackId)
+
+//            val args = extras
+//            args.putString(TRACK_ID, extras.getString(TRACK_ID))
+//            args.putString(TRACK_START_TIME, extras.getString(TRACK_START_TIME))
+//            args.putString(TRACK_START_DATE, extras.getString(TRACK_START_DATE))
+//            args.putDouble(TRACK_DISTANCE, extras.getDouble(TRACK_DISTANCE))
+//            args.putString(TRACK_DURATION, extras.getString(TRACK_DURATION))
             val fragment: Fragment = TrackInfoFragment()
-            fragment.arguments = args
+            fragment.arguments = extras
             supportFragmentManager.beginTransaction()
                 .replace(track_info_f_container.id, fragment)
                 .commit()

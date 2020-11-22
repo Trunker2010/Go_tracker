@@ -69,4 +69,5 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
 }
