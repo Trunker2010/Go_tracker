@@ -19,21 +19,24 @@ import com.example.gotracker.utils.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import kotlinx.android.synthetic.main.date_item.view.*
 import kotlinx.android.synthetic.main.fragment_track_list.*
 import kotlinx.android.synthetic.main.track_item.view.*
-import kotlinx.android.synthetic.main.date_item.view.*
+
 import java.util.*
 
-const val TRACK_ID = "track_id"
-const val TRACK_DISTANCE = "track_distance"
-const val TRACK_DURATION = "track_duration"
-const val TRACK_START_TIME = "track_start_time"
-const val TRACK_START_DATE="track_start_date"
+//const val TRACK_ID = "track_id"
+//const val TRACK_DISTANCE = "track_distance"
+//const val TRACK_DURATION = "track_duration"
+//const val TRACK_START_TIME = "track_start_time"
+//const val TRACK_START_DATE = "track_start_date"
+//const val TRACK_JSON = "ul_track"
+const val TRACK_PARCELABLE="track_parcelable"
 
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
-    var isCanceled = false
+
 
     private val trackEventListener = object : ValueEventListener {
 
@@ -59,8 +62,10 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         }
 
         override fun onCancelled(error: DatabaseError) {
-            isCanceled = true
+            TODO("Not yet implemented")
         }
+
+
     }
 
 
@@ -96,7 +101,6 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onResume() {
         super.onResume()
-        isCanceled = false
         initUserTracks()
 
     }
@@ -129,20 +133,13 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             override fun onClick(v: View?) {
 
                 val intent = Intent(this@TrackListFragment.context, TrackInfoActivity::class.java)
-                intent.putExtra(TRACK_ID, mUserTrack.trackID)
-                intent.putExtra(TRACK_DISTANCE, mUserTrack.distance)
-                intent.putExtra(TRACK_DURATION, mUserTrack.activeDuration)
-                intent.putExtra(TRACK_START_TIME, mUserTrack.startTime)
-                intent.putExtra(TRACK_START_DATE, mUserTrack.startDate)
-
-
+                intent.putExtra(TRACK_PARCELABLE,mUserTrack)
                 Log.d("mUserTrack.trackID", mUserTrack.startTime)
                 this@TrackListFragment.startActivity(intent)
             }
 
             fun bindTrack(userTrack: UserTrack) {
                 mUserTrack = userTrack
-
             }
 
 

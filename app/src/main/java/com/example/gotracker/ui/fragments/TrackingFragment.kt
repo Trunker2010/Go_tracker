@@ -396,14 +396,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.longitude = locationService.longitude
                     locParams.trackPoints = locationService.tracks
                     locParams.time = locationService.trackTimer.currentTime
-                    locParams.timeMS = locationService.trackTimer.durationTime
+                    locParams.durationTimeMS = locationService.trackTimer.durationTime
 
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
                     Log.d("locParamsRunnable", locParams.distance.toString())
 
                 }
-                locParamsHandler.postDelayed(this, 1000)//было 1000
+                locParamsHandler.postDelayed(this, 1000)
             }
 
 
@@ -436,8 +436,9 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     private fun saveTrack() {
         val dateMap = mutableMapOf<String, Any>()
         dateMap[CHILD_DISTANCE] = locParams.distance
-        dateMap[CHILD_TIME] = locParams.timeMS
+        dateMap[CHILD_TIME_DURATION] = locParams.durationTimeMS
         dateMap[CHILD_START_TIME] = locationService.startTime
+        dateMap[CHILD_MAX_SPEED] = locationService.maxSpeed
 
         REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
             .child(dateMap.hashCode().toString())

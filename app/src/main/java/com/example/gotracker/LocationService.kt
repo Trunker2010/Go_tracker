@@ -73,7 +73,7 @@ class LocationService : Service() {
     lateinit var locationManager: LocationManager
 
 
-    val locationListener = object : MyLocationListener() {
+    private val locationListener = object : MyLocationListener() {
         override fun onLocationChanged(location: Location?) {
 
             val mNotificationManager =

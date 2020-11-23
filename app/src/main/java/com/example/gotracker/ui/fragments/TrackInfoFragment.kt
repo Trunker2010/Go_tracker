@@ -10,31 +10,27 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import com.example.gotracker.R
 import com.example.gotracker.model.UserTrack
 import com.example.gotracker.utils.*
+import com.google.firebase.database.DatabaseReference
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
-import com.yandex.mapkit.map.*
+import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.Map
+import com.yandex.mapkit.map.MapObjectCollection
+import kotlinx.android.synthetic.main.bottom_sheet.*
 import kotlinx.android.synthetic.main.fragment_track_info.*
 import java.util.*
 
 class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     private var userTrack: UserTrack = UserTrack()
-    private var trackDistance: Double = 0.0
-    private lateinit var trackID: String
-    private lateinit var trackDuration: String
-    private lateinit var trackStartTime: String
-    private lateinit var trackStartDate: String
-    private var trackPoints: MutableList<MutableList<Point>> = mutableListOf()
     private lateinit var trackObject: MapObjectCollection
-    private lateinit var polyline: PolylineMapObject
+    private lateinit var trackRef: DatabaseReference
     private val pointEventListener = AppValueEventListener { pointsGroup ->
 
 
@@ -60,8 +56,12 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
             Circle(userTrack.trackPoints[0][0], 2F),
             Color.RED, 2f, Color.GREEN
         )
+
         main_info.text = "${userTrack.startDate} ${userTrack.startTime}"
-        distance_params.text = "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км."
+        distance_params.text =
+            "${String.format(Locale.getDefault(),"%.2f", userTrack.distance)} км."
+        max_speed_params.text = userTrack.maxSpeed.toString()
+        duration_params.text = userTrack.activeDuration
 
 
     }
@@ -87,29 +87,7 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     ): View? {
 
         MapKitFactory.initialize(this.context)
-
-        arguments?.let { args ->
-
-            trackID = args.getString(TRACK_ID) ?: "null"
-            trackDistance = args.getDouble(TRACK_DISTANCE)
-            trackDuration = args.getString(TRACK_DURATION) ?: "00:00:00"
-            trackStartTime = args.getString(TRACK_START_TIME).toString()
-            trackStartDate = args.getString(TRACK_START_DATE) ?: ""
-
-        }
-
-        userTrack = UserTrack(
-                trackID,
-        trackDistance,
-        trackDuration,
-        trackPoints,
-        trackStartTime,
-        trackStartDate
-        )
-
-
-
-
+        userTrack = arguments?.getParcelable(TRACK_PARCELABLE)!!
 
         return super.onCreateView(inflater, container, savedInstanceState)
 
@@ -117,7 +95,7 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     }
 
     private fun getTrackPoints(trackId: String) {
-        val trackRef = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
+        trackRef = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
             .child(trackId).child(
                 CHILD_TRACK_POINTS
             )
@@ -128,8 +106,7 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onResume() {
         super.onResume()
-//        trackMapView.map.isScrollGesturesEnabled = false
-        getTrackPoints(trackID)
+        getTrackPoints(userTrack.trackID)
         trackObject = trackMapView.map.mapObjects.addCollection()
         bottom_sheet.setOnTouchListener { _, event ->
             Log.d("MotionEvent", event!!.action.toString())
@@ -156,5 +133,7 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
         super.onStop()
         MapKitFactory.getInstance().onStop()
         trackMapView.onStop()
+        trackRef.removeEventListener(pointEventListener)
+
     }
 }

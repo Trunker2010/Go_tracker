@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="340dp"
+    android:background="@drawable/rectangle_bottom_sheet"
+    android:clipChildren="true"
+    android:orientation="vertical"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="80dp"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    tools:showIn="@layout/fragment_track_info">
+
+    <TextView
+        android:id="@+id/main_info"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/rectangle_inner"
+        android:gravity="center"
+        android:padding="6dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:autoSizeMaxTextSize="@dimen/big_text" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray" />
+
+    <TableLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp">
+
+        <TableRow
+            android:id="@+id/distance_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp">
+
+            <TextView android:text="@string/distance" />
+
+            <TextView
+                android:id="@+id/distance_params"
+                style="@style/row_params_text"
+                android:gravity="center"
+                android:text="0:00" />
+
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/duration_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:padding="8dp">
+
+            <TextView android:text="@string/duration" />
+
+            <TextView
+                android:id="@+id/duration_params"
+                style="@style/row_params_text"
+                android:text="0000"
+
+                />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/av_speed_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp">
+
+            <TextView android:text="@string/average_speed" />
+
+            <TextView
+                android:text="0000"
+                android:id="@+id/av_speed_params"
+                style="@style/row_params_text" />
+
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/max_speed_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:padding="8dp">
+
+            <TextView android:text="@string/max_speed" />
+
+            <TextView
+                android:id="@+id/max_speed_params"
+                style="@style/row_params_text"
+                android:text="0000"
+
+                />
+        </TableRow>
+
+
+    </TableLayout>
+
+
+</LinearLayout>
