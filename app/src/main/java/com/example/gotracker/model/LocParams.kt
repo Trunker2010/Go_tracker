@@ -9,6 +9,6 @@ class LocParams {
     var speed: Double = 0.0
     var distance: Double = 0.0
     var trackPoints = ArrayList<ArrayList<Point>>()
-    var time = ""
+//    var time = ""
     var durationTimeMS = 0L
 }

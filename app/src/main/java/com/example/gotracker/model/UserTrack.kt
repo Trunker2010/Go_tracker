@@ -6,11 +6,11 @@ import com.example.gotracker.utils.LocationConverter
 import com.yandex.mapkit.geometry.Point
 import java.util.*
 
-class UserTrack() : Date() ,Parcelable {
+class UserTrack() : Date(), Parcelable {
     var maxSpeed = 0.0F
     var trackID = ""
     var distance = 0.0
-    var activeDuration = ""
+    var activeDuration = 0L
     var startTime = ""
     var trackPoints: MutableList<MutableList<Point>> = mutableListOf()
 
@@ -19,14 +19,14 @@ class UserTrack() : Date() ,Parcelable {
         maxSpeed = parcel.readFloat()
         trackID = parcel.readString().toString()
         distance = parcel.readDouble()
-        activeDuration = parcel.readString().toString()
+        activeDuration = parcel.readLong()
         startTime = parcel.readString().toString()
     }
 
     constructor(
         trackID: String,
         distance: Double,
-        activeDuration: String,
+        activeDuration: Long,
         trackPoints: MutableList<MutableList<Point>>,
         startTime: String,
         startDate: String
@@ -44,7 +44,7 @@ class UserTrack() : Date() ,Parcelable {
         parcel.writeFloat(maxSpeed)
         parcel.writeString(trackID)
         parcel.writeDouble(distance)
-        parcel.writeString(activeDuration)
+        parcel.writeLong(activeDuration)
         parcel.writeString(startTime)
     }
 

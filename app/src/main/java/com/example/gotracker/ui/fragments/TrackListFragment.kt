@@ -184,7 +184,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                         holder.bindTrack(userTrack)
                         holder.distance.text =
                             "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
-                        holder.duration.text = userTrack.activeDuration
+                        holder.duration.text = LocationConverter.convertMStoTime(userTrack.activeDuration)
                         holder.startTime.text = userTrack.startTime
 
                     }

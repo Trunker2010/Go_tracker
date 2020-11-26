@@ -20,9 +20,9 @@ fun createTrack(trackID: DataSnapshot): UserTrack {
     userTrack.startTimeInMs = time
     userTrack.distance =
         trackID.child(CHILD_DISTANCE).getValue(Double::class.java)!!
-    userTrack.activeDuration = LocationConverter.convertMStoTime(
+    userTrack.activeDuration =
         trackID.child(CHILD_TIME_DURATION).getValue(Long::class.java)!!
-    )
+
 
     userTrack.startDate =
         timeMsToDate(time)

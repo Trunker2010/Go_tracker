@@ -17,11 +17,11 @@ import com.example.gotracker.utils.*
 import com.google.firebase.database.DatabaseReference
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
 import com.yandex.mapkit.map.CameraPosition
-import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.MapObjectCollection
 import kotlinx.android.synthetic.main.bottom_sheet.*
 import kotlinx.android.synthetic.main.fragment_track_info.*
@@ -45,11 +45,21 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
         }
         drawTrackPoints(userTrack.trackPoints)
 
-
-        trackMapView.map.move(
-            CameraPosition(userTrack.trackPoints[0][0], 14.0f, 0.0f, 0.0f),
-            Animation(Animation.Type.SMOOTH, 1F), Map.CameraCallback { }
+        val boundingBox = findBoundingBoxPoints(userTrack.trackPoints)
+        var cameraPosition = trackMapView.map.cameraPosition(boundingBox)
+        cameraPosition = CameraPosition(
+            cameraPosition.target,
+            cameraPosition.zoom - 0.8f,
+            cameraPosition.azimuth,
+            cameraPosition.tilt
         )
+        trackMapView.map.move(cameraPosition, Animation(Animation.Type.SMOOTH, 0f), null)
+
+//        trackMapView.map.move(
+//            CameraPosition(userTrack.trackPoints[0][0], 14.0f, 0.0f, 0.0f),
+//            Animation(Animation.Type.SMOOTH, 1F), Map.CameraCallback { }
+//        )
+//        trackMapView.map.cameraPosition(BoundingBox())
 
 
         var startPoint = trackObject.addCircle(
@@ -57,14 +67,23 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
             Color.RED, 2f, Color.GREEN
         )
 
+
         main_info.text = "${userTrack.startDate} ${userTrack.startTime}"
         distance_params.text =
-            "${String.format(Locale.getDefault(),"%.2f", userTrack.distance)} км."
+            "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
         max_speed_params.text = userTrack.maxSpeed.toString()
-        duration_params.text = userTrack.activeDuration
+        duration_params.text = LocationConverter.convertMStoTime(userTrack.activeDuration)
+        av_speed_params.text = "${
+            String.format(
+                Locale.getDefault(),
+                "%.2f",
+                (userTrack.distance / (userTrack.activeDuration.toDouble() / 1000 / 60 / 60))
+            )
+        } км/ч"
 
 
     }
+
 
     private fun drawTrackPoints(tracks: MutableList<MutableList<Point>>) {
         // Log.i("FragmentTracking", "drawTrackPoints")
@@ -72,7 +91,8 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
 
         for (track in tracks) {
 
-            trackObject.addPolyline(Polyline(track))
+            var a = trackObject.addPolyline(Polyline(track))
+
 
         }
 
@@ -134,6 +154,38 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
         MapKitFactory.getInstance().onStop()
         trackMapView.onStop()
         trackRef.removeEventListener(pointEventListener)
+
+    }
+
+    private fun findBoundingBoxPoints(pointLists: MutableList<MutableList<Point>>): BoundingBox {
+
+        var maxLatitude: Double = pointLists[0][0].latitude
+        var maxLongitude: Double = pointLists[0][0].longitude
+        var minLatitude: Double = pointLists[0][0].latitude
+        var minLongitude: Double = pointLists[0][0].longitude
+        for (pointList in pointLists) {
+            for (point in pointList) {
+
+                if (point.latitude > maxLatitude) {
+                    maxLatitude = point.latitude
+
+                }
+                if (point.longitude > maxLongitude) {
+                    maxLongitude = point.longitude
+
+                }
+                if (point.latitude < minLatitude) {
+                    minLatitude = point.latitude
+                }
+                if (point.longitude < minLongitude) {
+                    minLongitude = point.longitude
+                }
+            }
+        }
+        val southWest = Point(minLatitude, minLongitude)
+        val northEast = Point(maxLatitude, maxLongitude)
+
+        return BoundingBox(southWest, northEast)
 
     }
 }

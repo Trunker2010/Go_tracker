@@ -108,7 +108,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             "%1$,.2f", locParams.distance
 
         ))
-        binding.currentTime.text = locParams.time
+        binding.currentTime.text =LocationConverter.convertMStoTime(locParams.durationTimeMS)
         drawTrackPoints(locParams.trackPoints)
 
     }
@@ -339,7 +339,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     private fun createBundleParams(locParams: LocParams): Bundle {
         val bundle = Bundle()
         bundle.putDouble(DISTANCE_KEY, locParams.distance)
-        bundle.putString(TIME_KEY, locParams.time)
+        bundle.putLong(TIME_KEY, locParams.durationTimeMS)
         return bundle
 
     }
@@ -395,8 +395,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.latitude = locationService.latitude
                     locParams.longitude = locationService.longitude
                     locParams.trackPoints = locationService.tracks
-                    locParams.time = locationService.trackTimer.currentTime
                     locParams.durationTimeMS = locationService.trackTimer.durationTime
+//                    locParams.durationTimeMS = locationService.trackTimer.durationTime
 
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)

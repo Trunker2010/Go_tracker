@@ -26,13 +26,14 @@
         android:textStyle="bold"
         app:autoSizeMaxTextSize="@dimen/big_text" />
 
-    <LinearLayout
+    <View
+        android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@android:color/darker_gray" />
+        android:background="?android:attr/listDivider" />
 
     <TableLayout
-
+        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="8dp">
@@ -46,9 +47,9 @@
             <TextView android:text="@string/distance" />
 
             <TextView
+
                 android:id="@+id/distance_params"
                 style="@style/row_params_text"
-                android:gravity="center"
                 android:text="0:00" />
 
 
@@ -58,7 +59,7 @@
             android:id="@+id/duration_row"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+
             android:padding="8dp">
 
             <TextView android:text="@string/duration" />
@@ -91,7 +92,6 @@
             android:id="@+id/max_speed_row"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
             android:padding="8dp">
 
             <TextView android:text="@string/max_speed" />
