@@ -27,30 +27,38 @@ import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
+import com.yandex.mapkit.layers.GeoObjectTapEvent
+import com.yandex.mapkit.layers.GeoObjectTapListener
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.*
+import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.android.synthetic.main.activity_track_info.*
+import kotlinx.android.synthetic.main.fragment_track_info.*
+import kotlinx.android.synthetic.main.fragment_tracking.*
 import java.util.*
 
 
 const val START_TRACKING = "start_tracking"
 const val SAVE_DIALOG_TAG = "saveDialog"
+const val SAVE_DIALOG_ERR_TAG = "saveDialogErr"
 const val SAVE_DIALOG_REQUEST_CODE = 1
-
+const val SAVE_ERR_DIALOG_REQUEST_CODE = 2
+const val DISTANCE_KEY = "speed"
+const val MAX_SPEED_KEY = "max_sped "
+const val TIME_KEY = "time"
 
 class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
     View.OnClickListener {
-
-
+    private val cameraPosition = CameraPosition()
+    private var camZoom = 15.0F
     private val FRAGMENT_TAG = "FragmentTracker"
-
     lateinit var userLocationLayer: UserLocationLayer
     lateinit var mapKit: MapKit
     lateinit var binding: FragmentTrackingBinding
-    var isStarted: Boolean = false
     lateinit var locationService: LocationService
     private lateinit var intentService: Intent
     private lateinit var connection: ServiceConnection
@@ -59,15 +67,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     private lateinit var locParamsRunnable: Runnable
     private lateinit var polyline: PolylineMapObject
     var locParams = LocParams()
-    private var saveDialog = SaveTrackDialogFragment()
-    val DISTANCE_KEY: String = "speed"
-    val MAX_SPEED_KEY = "max_sped"
-    val TIME_KEY = "time"
+    private var saveTrackDialogFragment = SaveTrackDialogFragment()
+    private var saveErrDialogFragment = SaveErrDialogFragment()
+
 
     private fun getLocParams() {
-//        if (!this::locParamsRunnable.isInitialized) {
-//
-//        }
+
         locParamsRunnable.run()
 
 
@@ -108,7 +113,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             "%1$,.2f", locParams.distance
 
         ))
-        binding.currentTime.text =LocationConverter.convertMStoTime(locParams.durationTimeMS)
+        binding.currentTime.text = LocationConverter.convertMStoTime(locParams.durationTimeMS)
         drawTrackPoints(locParams.trackPoints)
 
     }
@@ -158,10 +163,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         }
 
 
-//        retainInstance = true
+        retainInstance = true
 
-
-//
     }
 
 
@@ -171,7 +174,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     ): View? {
         binding = FragmentTrackingBinding.inflate(layoutInflater)
         binding.trackingMapView.map.isRotateGesturesEnabled = true
+
+
+
+
+
         mapKit = MapKitFactory.getInstance()
+
+
         userLocationLayer = mapKit.createUserLocationLayer(binding.trackingMapView.mapWindow)
         userLocationLayer.isHeadingEnabled = true
         userLocationLayer.isVisible = true
@@ -254,7 +264,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         userLocationView.arrow.setIcon(
             ImageProvider.fromResource(
-                activity?.applicationContext, R.drawable.user_arrow
+                requireActivity().applicationContext, R.drawable.user_arrow
             ), IconStyle().setRotationType(RotationType.ROTATE)
 
         )
@@ -298,20 +308,33 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 changeButton()
             }
             R.id.stop_btn -> {
+
+
                 Log.d("FragmentTracking", "stop_btn")
-                saveDialog.arguments = createBundleParams(locParams)
-                saveDialog.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
-                fragmentManager?.let {
-                    saveDialog.show(it, SAVE_DIALOG_TAG)
+                if (locParams.distance > 0) {
+                    saveTrackDialogFragment.arguments = createBundleParams(locParams)
+                    saveTrackDialogFragment.setTargetFragment(this, SAVE_DIALOG_REQUEST_CODE)
+
+                    saveTrackDialogFragment.show(
+                        requireActivity().supportFragmentManager,
+                        SAVE_DIALOG_TAG
+                    )
                     locationService.trackTimer.onPauseTimer()
 
+
+                } else {
+
+                    saveErrDialogFragment.setTargetFragment(this, SAVE_ERR_DIALOG_REQUEST_CODE)
+                    saveErrDialogFragment.show(
+                        requireActivity().supportFragmentManager,
+                        SAVE_DIALOG_ERR_TAG
+                    )
+                    locationService.trackTimer.onPauseTimer()
                 }
 
 
             }
             R.id.pause_btn -> {
-//                locParamsHandler.removeCallbacks(locParamsRunnable)
-//                locationService.removeLocationUpdate()
                 LocationService.isPaused = true
                 changeButton()
                 locationService.trackTimer.onPauseTimer()
@@ -335,50 +358,63 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     }
 
-
     private fun createBundleParams(locParams: LocParams): Bundle {
         val bundle = Bundle()
         bundle.putDouble(DISTANCE_KEY, locParams.distance)
         bundle.putLong(TIME_KEY, locParams.durationTimeMS)
+        bundle.putFloat(MAX_SPEED_KEY, locParams.maxSpeed)
         return bundle
 
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            when (requestCode) {
-                SAVE_DIALOG_REQUEST_CODE -> {
 
+        if (requestCode == SAVE_DIALOG_REQUEST_CODE) {
+            when (resultCode) {
+                Activity.RESULT_OK -> {
                     saveTrack()
                     mapObjects.clear()
-                    Intent(activity?.applicationContext, LocationService::class.java)
-
-
-                    locationService.trackTimer.stopTimer()
-                    LocationService.isPaused = false
-                    locationService.removeLocationUpdate()
-                    locationService.clearParams()
-
-                    locParamsHandler.removeCallbacks(locParamsRunnable)
-                    LocationService.isStarted = false
-
-                    locationService.trackTimer.offPauseTimer()
-
-
+                    Intent(requireActivity().applicationContext, LocationService::class.java)
+                    stopTracking()
                     changeButton()
-
-
-
                     Log.d(FRAGMENT_TAG, "SAVE_DIALOG_REQUEST_CODE")
 
                 }
+                else -> {
+                    locationService.trackTimer.offPauseTimer()
+                }
+
             }
 
-        } else {
-            locationService.trackTimer.offPauseTimer()
+
+        } else if (requestCode == SAVE_ERR_DIALOG_REQUEST_CODE) {
+
+            when (resultCode) {
+                RESULT_RESUMED -> {
+                    locationService.trackTimer.offPauseTimer()
+                }
+                Activity.RESULT_CANCELED -> {
+                    mapObjects.clear()
+                    Intent(requireActivity().applicationContext, LocationService::class.java)
+                    stopTracking()
+                    changeButton()
+                }
+
+            }
         }
 
+
+    }
+
+    private fun stopTracking() {
+        locationService.trackTimer.stopTimer()
+        LocationService.isPaused = false
+        locationService.removeLocationUpdate()
+        locationService.clearParams()
+        locParamsHandler.removeCallbacks(locParamsRunnable)
+        LocationService.isStarted = false
+        locationService.trackTimer.offPauseTimer()
     }
 
     override fun onAttach(context: Context) {
@@ -396,7 +432,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                     locParams.longitude = locationService.longitude
                     locParams.trackPoints = locationService.tracks
                     locParams.durationTimeMS = locationService.trackTimer.durationTime
-//                    locParams.durationTimeMS = locationService.trackTimer.durationTime
+                    locParams.maxSpeed = locationService.maxSpeed
+
 
                     message = locParamsHandler.obtainMessage(LOC_PARAMS, locParams)
                     locParamsHandler.sendMessage(message)
@@ -438,7 +475,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         dateMap[CHILD_DISTANCE] = locParams.distance
         dateMap[CHILD_TIME_DURATION] = locParams.durationTimeMS
         dateMap[CHILD_START_TIME] = locationService.startTime
-        dateMap[CHILD_MAX_SPEED] = locationService.maxSpeed
+        dateMap[CHILD_MAX_SPEED] = locParams.maxSpeed
 
         REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
             .child(dateMap.hashCode().toString())
@@ -465,10 +502,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     private fun setCamera() {
 
+
         if (locParams.latitude != 0.0) {
             val pos = Point(locParams.latitude, locParams.longitude)
+
             binding.trackingMapView.map.move(
-                CameraPosition(pos, 15.0f, 0.0f, 0.0f),
+                CameraPosition(pos, camZoom, 0.0f, 0.0f),
                 Animation(Animation.Type.LINEAR, 0.3F),
                 null
             )

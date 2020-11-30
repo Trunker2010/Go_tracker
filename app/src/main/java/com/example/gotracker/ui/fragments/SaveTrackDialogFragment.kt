@@ -1,8 +1,6 @@
 package com.example.gotracker.ui.fragments
 
 import android.app.Activity
-import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,15 +10,15 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.gotracker.R
-import com.example.gotracker.databinding.FragmentTrackingBinding
-
+import com.example.gotracker.utils.LocationConverter
+import java.util.*
 
 
 class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
-    lateinit var speedTextView: TextView
-    lateinit var distanceTextView: TextView
-    lateinit var maxSpdTextView: TextView
-    lateinit var timeDuration: TextView
+
+    lateinit var distanceTV: TextView
+    lateinit var maxSpeedTV: TextView
+    lateinit var timeDurationTV: TextView
 
     lateinit var saveBtn: Button
     lateinit var cancel: Button
@@ -33,18 +31,17 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
         savedInstanceState: Bundle?
     ): View? {
         dialog?.setTitle("Сохранить трек?")
-        val distance = arguments?.getDouble(TrackingFragment().DISTANCE_KEY)
-        val time = arguments?.getString(TrackingFragment().TIME_KEY)
 
+        val distance = requireArguments().getDouble(DISTANCE_KEY)
+        val time = requireArguments().getLong(TIME_KEY)
+        val maxSpeed = requireArguments().getFloat(MAX_SPEED_KEY)
         val v = inflater.inflate(R.layout.fragment_save_track, null)
-        distanceTextView = v.findViewById(R.id.dialog_params_distance)
-        timeDuration = v.findViewById(R.id.dialog_params_duration)
+        initViews(v)
 
-        distanceTextView.text = distance.toString()
-        timeDuration.text = time
-        saveBtn = v.findViewById(R.id.save_btn)
-        cancel = v.findViewById(R.id.cancel_btn)
-        noSaveBtn = v.findViewById(R.id.no_save_btn)
+        distanceTV.text = (String.format(Locale.getDefault(), "%.2f", distance))
+        timeDurationTV.text = LocationConverter.convertMStoTime(time)
+        maxSpeedTV.text = (String.format(Locale.getDefault(), "%.2f", maxSpeed))
+
 
         saveBtn.setOnClickListener(this)
         cancel.setOnClickListener(this)
@@ -53,13 +50,25 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
         return v
     }
 
-    override fun onClick(v: View?) {
+    private fun initViews(v: View) {
+        distanceTV = v.findViewById(R.id.dialog_params_distance)
+        timeDurationTV = v.findViewById(R.id.dialog_params_duration)
+        maxSpeedTV = v.findViewById(R.id.dialog_params_maxSpd)
+        saveBtn = v.findViewById(R.id.save_btn)
+        cancel = v.findViewById(R.id.cancel_btn)
+        noSaveBtn = v.findViewById(R.id.no_save_btn)
+    }
+
+
+    override fun onClick(v: View) {
         val intent = Intent()
-        when (v?.id) {
+        when (v.id) {
             R.id.no_save_btn -> {
                 dismiss()
+                // TODO: 26.11.2020 обработать "не сохранять"
             }
             R.id.cancel_btn -> {
+
                 targetFragment?.onActivityResult(
                     targetRequestCode,
                     Activity.RESULT_CANCELED,
@@ -71,11 +80,10 @@ class SaveTrackDialogFragment : DialogFragment(), View.OnClickListener {
 
                 targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
                 dismiss()
-
-
             }
         }
     }
+
 
 
 }

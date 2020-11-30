@@ -31,23 +31,26 @@ import java.util.*
 //const val TRACK_START_TIME = "track_start_time"
 //const val TRACK_START_DATE = "track_start_date"
 //const val TRACK_JSON = "ul_track"
-const val TRACK_PARCELABLE="track_parcelable"
+const val TRACK_PARCELABLE = "track_parcelable"
 
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
 
-
     private val trackEventListener = object : ValueEventListener {
 
         override fun onDataChange(rootSnapshot: DataSnapshot) {
+            var countTracks = rootSnapshot.children.count()
             rootSnapshot.children.forEach { trackID ->
                 val userTrack = createTrack(trackID)
+                if (userTrack.distance > 0) {
+                    userTracks.add(userTrack)
+                } else
+                    countTracks--
 
-                userTracks.add(userTrack)
 
 
-                if (rootSnapshot.children.count() == userTracks.size) {
+                if (countTracks == userTracks.size) {
                     sortTracks()
                     difTrackDate()
                     if (loadTracksProgressBar != null) {
@@ -83,7 +86,13 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        retainInstance = true
 
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initUserTracks()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -101,7 +110,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onResume() {
         super.onResume()
-        initUserTracks()
+
 
     }
 
@@ -133,7 +142,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             override fun onClick(v: View?) {
 
                 val intent = Intent(this@TrackListFragment.context, TrackInfoActivity::class.java)
-                intent.putExtra(TRACK_PARCELABLE,mUserTrack)
+                intent.putExtra(TRACK_PARCELABLE, mUserTrack)
                 Log.d("mUserTrack.trackID", mUserTrack.startTime)
                 this@TrackListFragment.startActivity(intent)
             }
@@ -184,7 +193,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                         holder.bindTrack(userTrack)
                         holder.distance.text =
                             "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
-                        holder.duration.text = LocationConverter.convertMStoTime(userTrack.activeDuration)
+                        holder.duration.text =
+                            LocationConverter.convertMStoTime(userTrack.activeDuration)
                         holder.startTime.text = userTrack.startTime
 
                     }

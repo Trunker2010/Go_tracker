@@ -159,6 +159,8 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
 
     private fun findBoundingBoxPoints(pointLists: MutableList<MutableList<Point>>): BoundingBox {
 
+        var i = 0
+        Log.d("findBoundingBoxPoints", "start $i")
         var maxLatitude: Double = pointLists[0][0].latitude
         var maxLongitude: Double = pointLists[0][0].longitude
         var minLatitude: Double = pointLists[0][0].latitude
@@ -169,22 +171,25 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
                 if (point.latitude > maxLatitude) {
                     maxLatitude = point.latitude
 
+                } else if (point.latitude < minLatitude) {
+                    minLatitude = point.latitude
                 }
+
                 if (point.longitude > maxLongitude) {
                     maxLongitude = point.longitude
 
-                }
-                if (point.latitude < minLatitude) {
-                    minLatitude = point.latitude
-                }
-                if (point.longitude < minLongitude) {
+                } else if (point.longitude < minLongitude) {
                     minLongitude = point.longitude
                 }
+
+
+                i++
             }
         }
         val southWest = Point(minLatitude, minLongitude)
         val northEast = Point(maxLatitude, maxLongitude)
 
+        Log.d("findBoundingBoxPoints", "end $i")
         return BoundingBox(southWest, northEast)
 
     }

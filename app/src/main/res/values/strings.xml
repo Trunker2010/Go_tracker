@@ -45,5 +45,7 @@
     <string name="average_speed">Средняя скорость</string>
     <string name="max_speed">Максимальная скорость:</string>
     <string name="distance">Дистанция:</string>
+    <string name="track_cannot_be_saved">Трек не может быть сохранен. Потому-что он слишком короткий</string>
+    <string name="cancel">cancel</string>
 
 </resources>
