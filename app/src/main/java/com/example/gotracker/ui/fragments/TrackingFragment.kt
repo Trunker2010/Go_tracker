@@ -11,6 +11,7 @@ import android.graphics.PointF
 import android.os.*
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
@@ -52,8 +53,8 @@ const val MAX_SPEED_KEY = "max_sped "
 const val TIME_KEY = "time"
 
 class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
-    View.OnClickListener {
-    private val cameraPosition = CameraPosition()
+    View.OnClickListener, CameraListener {
+    private var isTouched = false
     private var camZoom = 15.0F
     private val FRAGMENT_TAG = "FragmentTracker"
     lateinit var userLocationLayer: UserLocationLayer
@@ -102,7 +103,10 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
     fun updateLocParams(locParams: LocParams) {
+
         setCamera()
+
+
         binding.speedM.text = (String.format(
             Locale.getDefault(),
             "%1$,.2f", locParams.speed
@@ -153,6 +157,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
                     if (msg.what == LOC_PARAMS) {
                         val locParams = msg.obj as LocParams
+
                         updateLocParams(locParams)
                         Log.d("locParamsHandler", locParams.distance.toString())
 
@@ -181,7 +186,10 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
         mapKit = MapKitFactory.getInstance()
 
-
+//        binding.trackingMapView.setOnTouchListener(this)
+//        binding.rootLayout.setOnTouchListener(this)
+        binding.findMe.setOnClickListener(this)
+        binding.trackingMapView.map.addCameraListener(this)
         userLocationLayer = mapKit.createUserLocationLayer(binding.trackingMapView.mapWindow)
         userLocationLayer.isHeadingEnabled = true
         userLocationLayer.isVisible = true
@@ -297,6 +305,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             R.id.start_btn -> {
 
                 mapObjects = binding.trackingMapView.map.mapObjects.addCollection()
+                isTouched = false
                 setCamera()
 
 
@@ -352,6 +361,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
                 startActivity(intent)
 
 
+            }
+            R.id.find_me -> {
+                Log.d("findMe", "onclick")
+                isTouched = false
+                setCamera()
             }
         }
 
@@ -501,16 +515,17 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
     }
 
     private fun setCamera() {
+        Log.d("isTouched", isTouched.toString())
+        if (!isTouched) {
+            if (locParams.latitude != 0.0) {
+                val pos = Point(locParams.latitude, locParams.longitude)
 
-
-        if (locParams.latitude != 0.0) {
-            val pos = Point(locParams.latitude, locParams.longitude)
-
-            binding.trackingMapView.map.move(
-                CameraPosition(pos, camZoom, 0.0f, 0.0f),
-                Animation(Animation.Type.LINEAR, 0.3F),
-                null
-            )
+                binding.trackingMapView.map.move(
+                    CameraPosition(pos, camZoom, 0.0f, 0.0f),
+                    Animation(Animation.Type.LINEAR, 0.3F),
+                    null
+                )
+            }
         }
 
 
@@ -557,6 +572,22 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             doUnbindService()
         }
     }
+
+    override fun onCameraPositionChanged(
+        map: Map,
+        cameraPosition: CameraPosition,
+        cameraUpdateSource: CameraUpdateSource,
+        b: Boolean
+    ) {
+        Log.d("cameraUpdateSource", camZoom.toString())
+        if (cameraUpdateSource == CameraUpdateSource.GESTURES) {
+            camZoom = cameraPosition.zoom
+            isTouched = true
+
+        }
+    }
+
+
 }
 
 

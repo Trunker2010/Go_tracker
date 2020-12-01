@@ -47,5 +47,6 @@
     <string name="distance">Дистанция:</string>
     <string name="track_cannot_be_saved">Трек не может быть сохранен. Потому-что он слишком короткий</string>
     <string name="cancel">cancel</string>
+    <string name="find">finde</string>
 
 </resources>

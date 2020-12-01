@@ -227,6 +227,16 @@
                 android:text="@string/stop_btn"
                 app:cornerRadius="@dimen/start_stop_btn_corner_r" />
 
+            <ImageButton
+
+                android:id="@+id/find_me"
+                style="@style/startarted_btns"
+                android:layout_marginHorizontal="@dimen/horizontal_margin"
+                android:src="@drawable/user_arrow"
+                android:text="@string/start"
+
+                />
+
 
         </LinearLayout>
 
