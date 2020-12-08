@@ -33,6 +33,7 @@ import com.yandex.mapkit.layers.GeoObjectTapListener
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
+import com.yandex.mapkit.road_events.RoadEventFailedError
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
@@ -494,6 +495,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
             .child(dateMap.hashCode().toString())
             .updateChildren(dateMap)
+
 
         for ((trackNumber, track) in locationService.tracks.withIndex()) {
 

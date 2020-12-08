@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -21,6 +23,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.date_item.view.*
 import kotlinx.android.synthetic.main.fragment_track_list.*
+import kotlinx.android.synthetic.main.track_item.*
 import kotlinx.android.synthetic.main.track_item.view.*
 
 import java.util.*
@@ -35,6 +38,7 @@ const val TRACK_PARCELABLE = "track_parcelable"
 
 
 class TrackListFragment : Fragment(R.layout.fragment_track_list) {
+    var showCb = false
 
 
     private val trackEventListener = object : ValueEventListener {
@@ -55,7 +59,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                     difTrackDate()
                     if (loadTracksProgressBar != null) {
                         loadTracksProgressBar.visibility = View.GONE
-                        rv_tracks.adapter = DataAdapter()
+                        updateUI()
                     }
 
                 }
@@ -86,14 +90,21 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         retainInstance = true
 
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        removeBtn.setOnClickListener {
+            (rv_tracks.adapter as TracksAdapter).removeSelectedItems()
+
+        }
         initUserTracks()
     }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreateView(
@@ -114,29 +125,64 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     }
 
-    inner class DataAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    inner class TracksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        var checkedList: MutableList<Int> = mutableListOf()
+        var removableDbTracksId: MutableList<String> = mutableListOf()
+        var mapTrack: MutableMap<Int, String> = mutableMapOf()
+        
 
 
         override fun getItemViewType(position: Int): Int {
             return when (userTracks[position]) {
                 is UserTrack -> R.layout.track_item
                 is Date -> R.layout.date_item
+
                 else -> -1
 
             }
         }
 
-        inner class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-            View.OnClickListener {
+        fun removeSelectedItems() {
+            checkedList.sortDescending()
+            checkedList.forEach { itemPosition ->
+                notifyItemRemoved(itemPosition);
+                userTracks.removeAt(itemPosition);
 
-            init {
-                itemView.setOnClickListener(this)
             }
+            checkedList.clear()
 
-            lateinit var mUserTrack: UserTrack
+        }
+
+        fun removeDbTrack(id: Int) {
+            val ref = REF_DATABASE_ROOT.child(NODE_TRACKS).child(id.toString()).ref
+            ref.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    snapshot.ref.removeValue()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+            })
+
+
+        }
+
+
+        inner class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+            View.OnClickListener, View.OnLongClickListener, CompoundButton.OnCheckedChangeListener {
             val distance: TextView = itemView.card_distance_params
             val duration: TextView = itemView.card_duration_params
             val startTime: TextView = itemView.card_star_time
+            val trackCheckBox: CheckBox = itemView.track_item_cb
+
+            init {
+                itemView.setOnClickListener(this)
+                itemView.setOnLongClickListener(this)
+                trackCheckBox.setOnCheckedChangeListener(this)
+            }
+
+            lateinit var mUserTrack: UserTrack
 
 
             override fun onClick(v: View?) {
@@ -149,6 +195,28 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
             fun bindTrack(userTrack: UserTrack) {
                 mUserTrack = userTrack
+            }
+
+            override fun onLongClick(v: View?): Boolean {
+                showCb = true
+                notifyDataSetChanged()
+
+                return true
+            }
+
+            override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+
+
+                if (isChecked) {
+                    checkedList.add(layoutPosition)
+                    removableDbTracksId.add(mUserTrack.trackID)
+
+                } else {
+                    checkedList.remove(layoutPosition)
+                    removableDbTracksId.remove(mUserTrack.trackID)
+                }
+                removeBtn.visibility = if (checkedList.size > 0) View.VISIBLE else View.GONE
+
             }
 
 
@@ -192,10 +260,21 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                     (userTracks[position] as UserTrack).let { userTrack ->
                         holder.bindTrack(userTrack)
                         holder.distance.text =
-                            "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
+                            "${
+                                String.format(
+                                    Locale.getDefault(),
+                                    "%.2f",
+                                    userTrack.distance
+                                )
+                            } км"
                         holder.duration.text =
                             LocationConverter.convertMStoTime(userTrack.activeDuration)
                         holder.startTime.text = userTrack.startTime
+                        if (showCb) {
+                            holder.trackCheckBox.visibility = View.VISIBLE
+                        }
+                        holder.trackCheckBox.isChecked = checkedList.indexOf(position) != -1
+
 
                     }
                 }
@@ -204,11 +283,14 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
         }
     }
 
-
     companion object {
         fun newInstance(): TrackListFragment {
             return TrackListFragment()
         }
+    }
+
+    fun updateUI() {
+        rv_tracks.adapter = TracksAdapter()
     }
 
 
