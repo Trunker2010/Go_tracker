@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import com.example.gotracker.GoTrackerApplication
 import com.example.gotracker.R
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
@@ -28,19 +29,14 @@ import kotlinx.android.synthetic.main.track_item.view.*
 
 import java.util.*
 
-//const val TRACK_ID = "track_id"
-//const val TRACK_DISTANCE = "track_distance"
-//const val TRACK_DURATION = "track_duration"
-//const val TRACK_START_TIME = "track_start_time"
-//const val TRACK_START_DATE = "track_start_date"
-//const val TRACK_JSON = "ul_track"
 const val TRACK_PARCELABLE = "track_parcelable"
 
 
-class TrackListFragment : Fragment(R.layout.fragment_track_list) {
+class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickListener {
     var showCb = false
-
-
+    val REMOVE_BTN_STATE = "remove_btn_state"
+    val MAP_TRACKS = "map_track"
+    lateinit var app: GoTrackerApplication
     private val trackEventListener = object : ValueEventListener {
 
         override fun onDataChange(rootSnapshot: DataSnapshot) {
@@ -75,6 +71,26 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     }
 
+    override fun onClick(v: View?) {
+        when (v!!.id) {
+            removeImage.id -> {
+                showCb = false
+                (rv_tracks.adapter as TracksAdapter).removeSelectedItems()
+                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
+
+                buttons.visibility = View.GONE
+
+
+            }
+            closeImage.id -> {
+                showCb = false
+                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
+                app.mapSelectedTrack.clear()
+                buttons.visibility = View.GONE
+            }
+        }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initUserTracks() {
@@ -90,6 +106,10 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        app = requireActivity().application as GoTrackerApplication
+
+        showCb = app.mapSelectedTrack.isNotEmpty()
+
 
         retainInstance = true
 
@@ -98,38 +118,21 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        removeBtn.setOnClickListener {
-            (rv_tracks.adapter as TracksAdapter).removeSelectedItems()
+        removeImage.setOnClickListener(this)
+        closeImage.setOnClickListener(this)
+
+        if (savedInstanceState != null) {
+
+            buttons.visibility = savedInstanceState.getInt(REMOVE_BTN_STATE)
 
         }
+
+
         initUserTracks()
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onCreateView(
-
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onResume() {
-        super.onResume()
-
-
-    }
-
     inner class TracksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        var checkedList: MutableList<Int> = mutableListOf()
-        var removableDbTracksId: MutableList<String> = mutableListOf()
-        var mapTrack: MutableMap<Int, String> = mutableMapOf()
-        
 
 
         override fun getItemViewType(position: Int): Int {
@@ -142,28 +145,38 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
             }
         }
 
-        fun removeSelectedItems() {
-            checkedList.sortDescending()
-            checkedList.forEach { itemPosition ->
-                notifyItemRemoved(itemPosition);
-                userTracks.removeAt(itemPosition);
-
-            }
-            checkedList.clear()
-
-        }
-
-        fun removeDbTrack(id: Int) {
-            val ref = REF_DATABASE_ROOT.child(NODE_TRACKS).child(id.toString()).ref
+        private fun removeDbTrack(id: String) {
+            val ref = REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString()).child(id).ref
             ref.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     snapshot.ref.removeValue()
+
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     TODO("Not yet implemented")
                 }
             })
+
+
+        }
+
+        fun removeSelectedItems() {
+            val sortedTracksMap = app.mapSelectedTrack.toSortedMap(reverseOrder())
+
+
+
+            for (track in sortedTracksMap) {
+
+
+                removeDbTrack(track.value)
+                userTracks.removeAt(track.key);
+                notifyItemRemoved(track.key)
+
+
+            }
+            sortedTracksMap.clear()
+            app.mapSelectedTrack.clear()
 
 
         }
@@ -208,14 +221,25 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
 
                 if (isChecked) {
-                    checkedList.add(layoutPosition)
-                    removableDbTracksId.add(mUserTrack.trackID)
+                    app.mapSelectedTrack[layoutPosition] = mUserTrack.trackID
+
 
                 } else {
-                    checkedList.remove(layoutPosition)
-                    removableDbTracksId.remove(mUserTrack.trackID)
+                    app.mapSelectedTrack.remove(layoutPosition)
+
+
+                    if (app.mapSelectedTrack.isEmpty()) {
+                        showCb = false
+                        Log.d("onCheckedChanged", "isEmpty ${app.mapSelectedTrack.isEmpty()}")
+                        if (!rv_tracks.isComputingLayout){
+                            notifyDataSetChanged()
+                        }
+
+                    }
                 }
-                removeBtn.visibility = if (checkedList.size > 0) View.VISIBLE else View.GONE
+                buttons.visibility =
+                    if (app.mapSelectedTrack.isNotEmpty()) View.VISIBLE else View.GONE
+
 
             }
 
@@ -270,13 +294,15 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
                         holder.duration.text =
                             LocationConverter.convertMStoTime(userTrack.activeDuration)
                         holder.startTime.text = userTrack.startTime
-                        if (showCb) {
-                            holder.trackCheckBox.visibility = View.VISIBLE
-                        }
-                        holder.trackCheckBox.isChecked = checkedList.indexOf(position) != -1
+
+
+                        if (showCb) holder.trackCheckBox.visibility = View.VISIBLE else holder.trackCheckBox.visibility = View.GONE
+
+                        holder.trackCheckBox.isChecked = app.mapSelectedTrack.contains(position)
 
 
                     }
+                    Log.d("TrackHolder", position.toString())
                 }
             }
 
@@ -291,6 +317,15 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list) {
 
     fun updateUI() {
         rv_tracks.adapter = TracksAdapter()
+    }
+
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(REMOVE_BTN_STATE, buttons.visibility)
+
+        Log.d(REMOVE_BTN_STATE, buttons.visibility.toString())
+        View.VISIBLE
     }
 
 
