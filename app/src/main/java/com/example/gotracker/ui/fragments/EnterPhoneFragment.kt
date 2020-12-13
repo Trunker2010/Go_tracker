@@ -15,6 +15,7 @@ import com.example.gotracker.utils.replaceRegFragment
 import com.example.gotracker.utils.showToast
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import kotlinx.android.synthetic.main.fragment_enter_phone.*
 import java.util.concurrent.TimeUnit
@@ -39,11 +40,11 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
         super.onStart()
         callBack = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                AUTH.signInWithCredential(credential).addOnCompleteListener{
-                    if (it.isSuccessful){
-                         showToast("Добро пожаловать")
+                AUTH.signInWithCredential(credential).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        showToast("Добро пожаловать")
                         (activity as RegisterActivity).replaceActivity(MainActivity())
-                    }else showToast(it.exception?.message.toString())
+                    } else showToast(it.exception?.message.toString())
 
                 }
             }
@@ -72,15 +73,15 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
 
     private fun authUser() {
         phoneNumber = register_input_phone_number.text.toString()
-        PhoneAuthProvider.getInstance()
-            .verifyPhoneNumber(
-                phoneNumber,
-                60,
-                TimeUnit.SECONDS,
-                activity as RegisterActivity,
-                callBack
+        val options = PhoneAuthOptions.newBuilder(AUTH)
+            .setPhoneNumber(phoneNumber)
+            .setTimeout(60, TimeUnit.SECONDS)
+            .setActivity(requireActivity())
+            .setCallbacks(callBack)
+            .build()
 
-            )
+
+        PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
 }

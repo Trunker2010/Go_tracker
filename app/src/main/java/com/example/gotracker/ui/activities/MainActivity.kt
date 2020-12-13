@@ -1,6 +1,7 @@
 package com.example.gotracker.ui.activities
 
 import android.Manifest
+import android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,11 +44,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun checkPermission() {
-        if (ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(baseContext, ACCESS_BACKGROUND_LOCATION)
             !== PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                this, arrayOf(ACCESS_FINE_LOCATION),
+                this, arrayOf(ACCESS_BACKGROUND_LOCATION),
                 PERMISSION_REQUEST_CODE
             )
         }

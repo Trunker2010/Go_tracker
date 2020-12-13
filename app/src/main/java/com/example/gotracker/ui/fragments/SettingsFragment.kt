@@ -10,9 +10,11 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 
 import com.example.gotracker.R
+import com.example.gotracker.ui.activities.MainActivity
 import com.example.gotracker.ui.activities.RegisterActivity
 import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.fragment_settings.*
+import kotlin.math.log
 
 /**
  * A simple [Fragment] subclass.
@@ -21,6 +23,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     lateinit var phone: EditTextPreference
     lateinit var name: EditTextPreference
+    lateinit var logOut: Preference
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.pref, rootKey)
     }
@@ -31,7 +34,9 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         savedInstanceState: Bundle?
     ): View? {
         phone = findPreference<EditTextPreference>(getString(R.string.settings_phone_number))!!
-        name = findPreference<EditTextPreference>(getString(R.string.settings_name_key))!!
+        name = findPreference(getString(R.string.settings_name_key))!!
+        logOut = findPreference(getString(R.string.exitButton))!!
+        logOut.onPreferenceClickListener = this
         name.title = USER.username
 
         name.setOnBindEditTextListener {
@@ -54,6 +59,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
                 }
             }
         }
+
 
 
         phone.title = AUTH.currentUser?.phoneNumber

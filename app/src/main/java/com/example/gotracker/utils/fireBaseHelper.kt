@@ -5,6 +5,7 @@ import com.example.gotracker.model.Date
 import com.example.gotracker.model.User
 import com.example.gotracker.model.UserTrack
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import java.util.concurrent.ExecutorService
@@ -39,48 +40,12 @@ fun initFirebase() {
     UID = AUTH.currentUser?.uid.toString()
 }
 
-fun saveUserTrack() {
-
-}
 
 
 fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
     (it as? UserTrack)?.startTimeInMs
 }
 
-//fun difTrackDate() {
-//    if (userTracks.size >= 1) {
-//
-//        var firstDate = (userTracks[0] as Date).startDate
-//        val date = Date()
-//        date.startDate = firstDate
-//        userTracks.add(0, date)
-//
-//        (userTracks[0] as Date).startDate = firstDate
-//
-//
-//        for (i in userTracks.indices) {
-//            Log.d("difTrackDate", "$i")
-//            if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
-//
-//                if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
-//
-//                    val bufDate = (userTracks[i + 1] as Date).startDate
-//                    val date = Date()
-//                    date.startDate = bufDate
-//                    userTracks.add(i + 1, date)
-//                    (userTracks[i + 1] as Date).startDate = bufDate
-//                    i.inc()
-////                    Log.d("difTrackDate", userTracks.size.toString())
-//                }
-//
-//
-//            }
-//
-//        }
-//
-//    }
-//
-//}
+
 
 
