@@ -52,7 +52,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
 
                 if (countTracks == userTracks.size) {
                     sortTracks()
-                    difTrackDate()
+                    difTracks()
+//                    getIndexesForInputDate()
                     if (loadTracksProgressBar != null) {
                         loadTracksProgressBar.visibility = View.GONE
                         updateUI()
@@ -64,6 +65,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
             }
         }
 
+
         override fun onCancelled(error: DatabaseError) {
             TODO("Not yet implemented")
         }
@@ -71,14 +73,16 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
 
     }
 
+
     override fun onClick(v: View?) {
         when (v!!.id) {
             removeImage.id -> {
-                showCb = false
+//                showCb = false
                 (rv_tracks.adapter as TracksAdapter).removeSelectedItems()
-                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
 
-                buttons.visibility = View.GONE
+//                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
+                removeEmptyDate()
+//                buttons.visibility = View.GONE
 
 
             }
@@ -131,6 +135,53 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
         initUserTracks()
     }
 
+    private fun removeEmptyDate() {
+        val datePositionList = mutableListOf<Int>()
+        val remDatePositionList = mutableListOf<Int>()
+        fun setDatePosition() {
+            for ((pos) in userTracks.withIndex()) {
+                if (userTracks[pos] !is UserTrack) {
+                    datePositionList.add(pos)
+                }
+            }
+            Log.d("removeEmptyDate", "$datePositionList")
+        }
+
+        fun findEmptyDate() {
+            var lastPosition = 0
+            for (pos in datePositionList.indices) {
+
+                if (datePositionList[pos] == userTracks.size -1) {
+                    remDatePositionList.add(datePositionList[pos])
+
+                } else {
+                    if ((lastPosition - datePositionList[pos]) == -1) {
+                        remDatePositionList.add(lastPosition)
+
+                    }
+                }
+
+                lastPosition = datePositionList[pos]
+
+
+            }
+            Log.d("remDatePositionList", "$remDatePositionList")
+
+        }
+
+
+
+        setDatePosition()
+        findEmptyDate()
+        remDatePositionList.sortDescending()
+        for (pos in remDatePositionList) {
+            rv_tracks.adapter!!.notifyItemRemoved(pos)
+            userTracks.removeAt(pos)
+        }
+
+
+    }
+
 
     inner class TracksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -143,7 +194,9 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
                 else -> -1
 
             }
+
         }
+
 
         private fun removeDbTrack(id: String) {
             val ref = REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString()).child(id).ref
@@ -175,6 +228,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
 
 
             }
+
             sortedTracksMap.clear()
             app.mapSelectedTrack.clear()
 
@@ -188,6 +242,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
             val duration: TextView = itemView.card_duration_params
             val startTime: TextView = itemView.card_star_time
             val trackCheckBox: CheckBox = itemView.track_item_cb
+
 
             init {
                 itemView.setOnClickListener(this)
@@ -230,8 +285,8 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
 
                     if (app.mapSelectedTrack.isEmpty()) {
                         showCb = false
-                        Log.d("onCheckedChanged", "isEmpty ${app.mapSelectedTrack.isEmpty()}")
-                        if (!rv_tracks.isComputingLayout){
+//                        Log.d("onCheckedChanged", "isEmpty ${app.mapSelectedTrack.isEmpty()}")
+                        if (!rv_tracks.isComputingLayout) {
                             notifyDataSetChanged()
                         }
 
@@ -277,7 +332,10 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
                 is DateHolder -> {
                     (userTracks[position] as Date).let { date ->
                         holder.date.text = date.startDate
+
+
                     }
+
                 }
 
                 is TrackHolder -> {
@@ -296,15 +354,17 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
                         holder.startTime.text = userTrack.startTime
 
 
-                        if (showCb) holder.trackCheckBox.visibility = View.VISIBLE else holder.trackCheckBox.visibility = View.GONE
+                        if (showCb) holder.trackCheckBox.visibility =
+                            View.VISIBLE else holder.trackCheckBox.visibility = View.GONE
 
                         holder.trackCheckBox.isChecked = app.mapSelectedTrack.contains(position)
 
 
                     }
-                    Log.d("TrackHolder", position.toString())
+//                    Log.d("TrackHolder", position.toString())
                 }
             }
+
 
         }
     }
@@ -326,6 +386,49 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
 
         Log.d(REMOVE_BTN_STATE, buttons.visibility.toString())
         View.VISIBLE
+    }
+
+
+    fun difTracks() {
+        val dateMap = mutableMapOf<Int, Date>()
+        fun setIndexesForInputDate() {
+
+            if (userTracks.size >= 1) {
+
+                var firstDate = (userTracks[0] as Date).startDate
+                val date = Date()
+                date.startDate = firstDate
+
+                dateMap[0] = date
+
+                for (i in userTracks.indices) {
+
+                    if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
+
+                        if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
+                            val bufDate = (userTracks[i + 1] as Date).startDate
+                            val date = Date()
+                            date.startDate = bufDate
+                            dateMap[i + 1] = date
+                        }
+
+                    }
+                    Log.d("getIndexesForInputDate", "$dateMap")
+
+                }
+
+            }
+
+        }
+
+        fun insetDate() {
+            val sortedDate = dateMap.toSortedMap(reverseOrder())
+            for (date in sortedDate) {
+                userTracks.add(date.key, date.value)
+            }
+        }
+        setIndexesForInputDate()
+        insetDate()
     }
 
 

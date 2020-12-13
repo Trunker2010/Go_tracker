@@ -29,7 +29,7 @@ const val CHILD_DISTANCE = "distance"
 const val CHILD_TIME_DURATION = "time"
 const val CHILD_TRACK_POINTS = "tracks_points"
 const val CHILD_START_TIME = "start_time"
-const val CHILD_MAX_SPEED="max_speed"
+const val CHILD_MAX_SPEED = "max_speed"
 lateinit var executor: ExecutorService
 
 fun initFirebase() {
@@ -48,37 +48,39 @@ fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
     (it as? UserTrack)?.startTimeInMs
 }
 
-fun difTrackDate() {
-    if (userTracks.size >= 1) {
+//fun difTrackDate() {
+//    if (userTracks.size >= 1) {
+//
+//        var firstDate = (userTracks[0] as Date).startDate
+//        val date = Date()
+//        date.startDate = firstDate
+//        userTracks.add(0, date)
+//
+//        (userTracks[0] as Date).startDate = firstDate
+//
+//
+//        for (i in userTracks.indices) {
+//            Log.d("difTrackDate", "$i")
+//            if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
+//
+//                if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
+//
+//                    val bufDate = (userTracks[i + 1] as Date).startDate
+//                    val date = Date()
+//                    date.startDate = bufDate
+//                    userTracks.add(i + 1, date)
+//                    (userTracks[i + 1] as Date).startDate = bufDate
+//                    i.inc()
+////                    Log.d("difTrackDate", userTracks.size.toString())
+//                }
+//
+//
+//            }
+//
+//        }
+//
+//    }
+//
+//}
 
-        var firstDate = (userTracks[0] as Date).startDate
-        val date = Date()
-        date.startDate = firstDate
-        userTracks.add(0, date)
 
-        (userTracks[0] as Date).startDate = firstDate
-
-
-        for (i in userTracks.indices) {
-
-            if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
-
-                if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
-
-                    val bufDate = (userTracks[i + 1] as Date).startDate
-                    val date = Date()
-                    date.startDate = bufDate
-                    userTracks.add(i + 1, date)
-                    (userTracks[i + 1] as Date).startDate = bufDate
-                    i.inc()
-                    Log.d("difTrackDate", userTracks.size.toString())
-                }
-
-
-            }
-
-        }
-
-    }
-
-}
