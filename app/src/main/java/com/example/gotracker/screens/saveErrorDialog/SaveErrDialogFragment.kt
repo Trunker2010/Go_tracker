@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.saveErrorDialog
 
 import android.app.Activity
 import android.content.Intent

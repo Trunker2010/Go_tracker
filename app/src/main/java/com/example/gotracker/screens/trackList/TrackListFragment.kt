@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.trackList
 
 import android.content.Intent
 import android.os.Build
@@ -17,7 +17,7 @@ import com.example.gotracker.GoTrackerApplication
 import com.example.gotracker.R
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
-import com.example.gotracker.ui.activities.TrackInfoActivity
+import com.example.gotracker.screens.trackInfo.TrackInfoActivity
 import com.example.gotracker.utils.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError

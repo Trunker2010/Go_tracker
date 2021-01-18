@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.tracking
 
 
 import android.annotation.SuppressLint
@@ -11,7 +11,6 @@ import android.graphics.PointF
 import android.os.*
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
@@ -20,20 +19,20 @@ import com.example.gotracker.LocationService
 import com.example.gotracker.R
 import com.example.gotracker.databinding.FragmentTrackingBinding
 import com.example.gotracker.model.LocParams
-import com.example.gotracker.ui.activities.LOC_PARAMS
-import com.example.gotracker.ui.activities.SettingsActivity
+import com.example.gotracker.screens.saveErrorDialog.RESULT_RESUMED
+import com.example.gotracker.screens.saveErrorDialog.SaveErrDialogFragment
+import com.example.gotracker.screens.saveTrackDialog.SaveTrackDialogFragment
+import com.example.gotracker.LOC_PARAMS
+import com.example.gotracker.screens.settings.SettingsActivity
 import com.example.gotracker.utils.*
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
-import com.yandex.mapkit.layers.GeoObjectTapEvent
-import com.yandex.mapkit.layers.GeoObjectTapListener
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
-import com.yandex.mapkit.road_events.RoadEventFailedError
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView

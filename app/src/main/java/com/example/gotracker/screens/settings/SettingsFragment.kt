@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.settings
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,11 +10,8 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 
 import com.example.gotracker.R
-import com.example.gotracker.ui.activities.MainActivity
-import com.example.gotracker.ui.activities.RegisterActivity
+import com.example.gotracker.RegisterActivity
 import com.example.gotracker.utils.*
-import kotlinx.android.synthetic.main.fragment_settings.*
-import kotlin.math.log
 
 /**
  * A simple [Fragment] subclass.

@@ -1,8 +1,6 @@
-package com.example.gotracker.ui.activities
+package com.example.gotracker
 
-import android.Manifest
 import android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,11 +9,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.gotracker.R
 import com.example.gotracker.model.User
-import com.example.gotracker.ui.fragments.FragmentStatistic
-import com.example.gotracker.ui.fragments.TrackListFragment
-import com.example.gotracker.ui.fragments.TrackingFragment
+import com.example.gotracker.screens.statistic.FragmentStatistic
+import com.example.gotracker.screens.trackList.TrackListFragment
+import com.example.gotracker.screens.tracking.TrackingFragment
+
 import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 

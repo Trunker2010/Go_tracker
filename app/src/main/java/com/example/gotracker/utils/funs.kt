@@ -72,7 +72,7 @@ fun Fragment.replaceRegFragment(fragment: Fragment) {
     this.fragmentManager?.beginTransaction()
         ?.addToBackStack(null)
         ?.replace(
-            R.id.register_data_container,
+            R.id.nav_host_reg_fragment,
             fragment
         )?.commit()
 }

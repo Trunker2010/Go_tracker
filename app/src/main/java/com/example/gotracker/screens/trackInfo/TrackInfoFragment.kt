@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.trackInfo
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -13,6 +13,8 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.example.gotracker.R
 import com.example.gotracker.model.UserTrack
+import com.example.gotracker.screens.trackList.TRACK_PARCELABLE
+
 import com.example.gotracker.utils.*
 import com.google.firebase.database.DatabaseReference
 import com.yandex.mapkit.Animation

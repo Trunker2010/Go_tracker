@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.activities.TrackInfoActivity">
+    tools:context=".screens.trackInfo.TrackInfoActivity">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/track_info_f_container"

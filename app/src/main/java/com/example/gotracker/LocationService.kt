@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Criteria
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.*
 import android.util.Log
@@ -17,16 +16,11 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.gotracker.model.TrackTimer
-import com.example.gotracker.ui.fragments.START_TRACKING
-import com.example.gotracker.ui.fragments.TrackingFragment
 import com.example.gotracker.utils.LocationConverter
 import com.example.gotracker.utils.MyLocationListener
 import com.yandex.mapkit.geometry.Point
-import kotlinx.coroutines.delay
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
-import kotlin.concurrent.thread
 
 const val UPDATE_NOTIFY_CHANNEL = "update_notify"
 const val MINE_NOTIFICATION_ID = 1

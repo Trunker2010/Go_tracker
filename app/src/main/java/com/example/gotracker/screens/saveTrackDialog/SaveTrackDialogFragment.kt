@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.saveTrackDialog
 
 import android.app.Activity
 import android.content.Intent
@@ -10,6 +10,10 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.gotracker.R
+import com.example.gotracker.screens.tracking.DISTANCE_KEY
+import com.example.gotracker.screens.tracking.MAX_SPEED_KEY
+import com.example.gotracker.screens.tracking.TIME_KEY
+
 import com.example.gotracker.utils.LocationConverter
 import java.util.*
 

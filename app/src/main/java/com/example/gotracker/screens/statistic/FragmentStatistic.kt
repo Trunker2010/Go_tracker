@@ -1,4 +1,4 @@
-package com.example.gotracker.ui.fragments
+package com.example.gotracker.screens.statistic
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
