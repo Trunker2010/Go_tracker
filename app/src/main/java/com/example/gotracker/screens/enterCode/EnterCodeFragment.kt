@@ -1,5 +1,6 @@
 package com.example.gotracker.screens.enterCode
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.ActivityNavigator
+import androidx.navigation.NavOptions
 
 import com.example.gotracker.R
 import com.example.gotracker.RegisterActivity
@@ -40,29 +43,6 @@ class EnterCodeFragment() :
 
     }
 
-//    private fun enterCode() {
-//        val code = enter_input_code.text.toString()
-//        val credential = PhoneAuthProvider.getCredential(id, code)
-//        AUTH.signInWithCredential(credential).addOnCompleteListener {
-//            if (it.isSuccessful) {
-//                val uid = AUTH.currentUser?.uid.toString()
-//                val dateMap = mutableMapOf<String, Any>()
-//                dateMap[CHILD_ID] = uid
-//                dateMap[CHILD_PHONE] = phoneNumber
-//                dateMap[CHILD_USERNAME] = uid
-//                REF_DATABASE_ROOT.child(NODE_USERS).child(uid).updateChildren(dateMap)
-//                    .addOnCompleteListener { it ->
-//                        if (it.isSuccessful) {
-//                            showToast("Добро пожаловать")
-//                            (activity as RegisterActivity).replaceActivity(MainActivity())
-//                        } else showToast(it.exception?.message.toString())
-//                    }
-//
-//
-//            } else showToast(it.exception?.message.toString())
-//        }
-//
-//    }
 
     private fun init() {
         mViewModel = ViewModelProvider(this).get(EnterCodeViewModel::class.java)
@@ -71,10 +51,25 @@ class EnterCodeFragment() :
             override fun afterTextChanged(s: Editable?) {
                 val code = enter_input_code.text.toString()
                 if (code.length == 6) {
-//                    enterCode()
                     mViewModel.enterCode(code, mId, mPhoneNumber) {
                         showToast("Добро пожаловать")
-                        (activity as RegisterActivity).mNavigation.navigate(R.id.action_enterCodeFragment_to_mainActivity)
+
+
+                        val extras = ActivityNavigator.Extras.Builder()
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            .build()
+
+                        val action =
+                            EnterCodeFragmentDirections.actionEnterCodeFragmentToMainActivity()
+
+
+                        (activity as RegisterActivity).mNavigation.navigate(
+                            action,
+                            extras
+
+
+                        )
+
                     }
                 }
             }

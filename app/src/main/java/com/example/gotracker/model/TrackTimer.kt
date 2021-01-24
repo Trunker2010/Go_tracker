@@ -1,7 +1,9 @@
 package com.example.gotracker.model
 
+import android.os.Handler
 import android.os.SystemClock
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.example.gotracker.utils.LocationConverter
 
 class TrackTimer {
@@ -14,21 +16,28 @@ class TrackTimer {
     private var isPaused = false
     private var timeSwapBuffer = 0L
     var durationTime = 0L
-    var currentTime: String = "0:00"
+
+    //    var currentTime: String = "0:00"
+    var liveCurrentTime = MutableLiveData<String>()
+
 
     lateinit var timerThread: Thread
     fun stopTimer() {
+        timerThread.interrupt()
+    }
 
+    fun clearTimerParams() {
+        startPauseTime = 0
         startTime = 0L
         startTimeInMileSeconds = 0L
         timeSwapBuffer = 0L
         durationTime = 0L
-        currentTime = "0:00"
+//        currentTime = "0:00"
+        isPaused = false
+        liveCurrentTime.postValue("0:00")
         pauseDuration = 0L
         pausedTime = 0L
         sumTimer = 0L
-        timerThread.interrupt()
-
     }
 
     /*Приостанавливает время таймера*/
@@ -48,7 +57,7 @@ class TrackTimer {
     private fun updatePauseTime() {
         pausedTime = SystemClock.uptimeMillis() - startPauseTime
         pauseDuration = pausedTime
-        Log.d("pauseTime", pauseDuration.toString())
+//        Log.d("pauseTime", pauseDuration.toString())
     }
 
     fun startTimer() {
@@ -60,6 +69,7 @@ class TrackTimer {
 
                 while (!isInterrupted) {
 
+
                     while (isPaused) {
                         updatePauseTime()
                         //Log.d("timerThread", "updatePauseTime")
@@ -67,15 +77,19 @@ class TrackTimer {
 
                     startTimeInMileSeconds = SystemClock.uptimeMillis() - startTime
                     durationTime = timeSwapBuffer + startTimeInMileSeconds - sumTimer
-                    currentTime = LocationConverter.convertMStoTime(durationTime)
+                    liveCurrentTime.postValue(LocationConverter.convertMStoTime(durationTime))
                     // Log.d("timerThread", "pauseDuration = $pauseDuration")
-                    //sleep(100)
+                    if (!isInterrupted) {
+                        sleep(100)
+                    }
+
 
                 }
 
 
-                stopTimer()
+                clearTimerParams()
                 Log.d("timerThread", "Interrupted")
+
                 return
 
             }

@@ -15,7 +15,7 @@ fun createTrack(trackID: DataSnapshot): UserTrack {
     val userTrack = UserTrack()
     userTrack.trackID = trackID.key.toString()
 
-    val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
+     val time = trackID.child(CHILD_START_TIME).getValue(Long::class.java)!!
 
     userTrack.startTimeInMs = time
     userTrack.distance =
@@ -38,7 +38,7 @@ fun AppCompatActivity.replaceFragment(fragment: Fragment) {
         return
     } else {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.mine_fragment, fragment)
+            .replace(R.id.mine_fragment_cont, fragment)
 
             .commit()
     }

@@ -9,27 +9,40 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
+import com.example.gotracker.databinding.ActivityMainBinding
 import com.example.gotracker.model.User
-import com.example.gotracker.screens.statistic.FragmentStatistic
-import com.example.gotracker.screens.trackList.TrackListFragment
 import com.example.gotracker.screens.tracking.TrackingFragment
 
 import com.example.gotracker.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 
 const val PERMISSION_REQUEST_CODE = 7
 const val LOC_PARAMS = 1
+lateinit var navController: NavController
 
+class MainActivity : AppCompatActivity() {
+    lateinit var binding: ActivityMainBinding
 
-class MainActivity : AppCompatActivity(R.layout.activity_main) {
-    lateinit var trackingFragment: TrackingFragment
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
 
+        setContentView(binding.root)
+        navController = findNavController(R.id.mine_fragment_cont)
+        binding.navigation.setupWithNavController(navController)
         initFields()
         initFunc(savedInstanceState)
+
+
+//        setupActionBarWithNavController(navController, appBarConfiguration)
 
 
     }
@@ -59,42 +72,45 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         if (AUTH.currentUser != null) {
             if (savedInstanceState == null) {
 
-                trackingFragment = TrackingFragment.newInstance()
-                replaceFragment(trackingFragment)
+
+//                trackingFragment = TrackingFragment.newInstance()
+//                replaceFragment(trackingFragment)
             }
 
-            navigation.setOnNavigationItemSelectedListener { item ->
-                when (item.itemId) {
-                    R.id.track -> {
-
-
-                        trackingFragment = TrackingFragment.newInstance()
-
-
-                        replaceFragment(trackingFragment)
-
-
-                        //checkPermission()
-                        true
-                    }
-                    R.id.list -> {
-                        replaceFragment(TrackListFragment.newInstance())
-
-                        true
-                    }
-                    R.id.statistic -> {
-
-                        replaceFragment(FragmentStatistic.newInstance())
-                        true
-                    }
-                    else -> false
-                }
-
-            }
+//            navigation.setOnNavigationItemSelectedListener { item ->
+//                when (item.itemId) {
+//                    R.id.track -> {
+//
+//
+//                        trackingFragment = TrackingFragment.newInstance()
+//
+//
+//                        replaceFragment(trackingFragment)
+//
+//
+//                        //checkPermission()
+//                        true
+//                    }
+//                    R.id.list -> {
+//                        replaceFragment(TrackListFragment.newInstance())
+//
+//                        true
+//                    }
+//                    R.id.statistic -> {
+//
+//                        replaceFragment(FragmentStatistic.newInstance())
+//                        true
+//                    }
+//                    else -> false
+//                }
+//
+//            }
         } else {
 
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
+            navController.navigate(R.id.registerActivity)
+//            val intent = Intent(this, RegisterActivity::class.java)
+//            startActivity(intent)
+
             finish()
         }
     }

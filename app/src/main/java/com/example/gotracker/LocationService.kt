@@ -15,6 +15,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
+import com.example.gotracker.model.LocParams
 import com.example.gotracker.model.TrackTimer
 import com.example.gotracker.utils.LocationConverter
 import com.example.gotracker.utils.MyLocationListener
@@ -47,6 +49,7 @@ class LocationService : Service() {
 
     lateinit var locationServiceBinder: LocationServiceBinder
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
+    var liveLocationParams = MutableLiveData<LocParams>()
 
     var speedKmH: Float = 0.0f
     var distanceInMeters: Double = 0.0
@@ -85,6 +88,7 @@ class LocationService : Service() {
 
                 if (maxSpeed < speedKmH) {
                     maxSpeed = speedKmH
+
                 }
                 latitude = location.latitude
                 longitude = location.longitude
@@ -110,6 +114,8 @@ class LocationService : Service() {
                 )
 
             }
+            updateLocationParams()
+
         }
     }
 
@@ -144,14 +150,28 @@ class LocationService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
+
         super.onCreate()
         addTrack()
         mNotificationManager =
             this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         locationNotification = LocationNotification(context = this)
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        updateLocationParams()
 
 
+    }
+
+    private fun updateLocationParams() {
+        liveLocationParams.value = LocParams(
+            maxSpeed,
+            latitude,
+            longitude,
+            speedKmH.toDouble(),
+            distanceKm,
+            tracks,
+            trackTimer.durationTime
+        )
     }
 
 
@@ -226,7 +246,8 @@ class LocationService : Service() {
             contentView.setOnClickPendingIntent(R.id.start_btn, startPendingIntent)
             contentView.setTextViewText(R.id.speed_params, speed)
             contentView.setTextViewText(R.id.card_distance_params, dst)
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+
+            return NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(icon)
                 .setCustomContentView(contentView)
                 .setTicker("tracker")
@@ -234,8 +255,6 @@ class LocationService : Service() {
                 .setContentTitle("title")
                 .setWhen(when_ms)
                 .build()
-
-            return notification
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -264,12 +283,10 @@ class LocationService : Service() {
 
 
     fun clearParams() {
-        speedKmH = 0.0f
-        distanceKm = 0.0
-        distanceInMeters = 0.0
-        maxSpeed = 0.0f
+        liveLocationParams.value = LocParams()
         tracks.clear()
         lastLocation = null
+        trackTimer.stopTimer()
         addTrack()
         stopForeground(true)
 

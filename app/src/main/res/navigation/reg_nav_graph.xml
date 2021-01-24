@@ -24,7 +24,9 @@
             app:destination="@id/enterPhoneFragment" />
         <action
             android:id="@+id/action_enterCodeFragment_to_mainActivity"
-            app:destination="@id/mainActivity" />
+            app:destination="@id/mainActivity"
+            app:launchSingleTop="false"
+            app:popUpToInclusive="false" />
     </fragment>
     <activity
         android:id="@+id/mainActivity"
