@@ -21,6 +21,7 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
     private var intentService: Intent = Intent(getApplication(), LocationService::class.java)
     lateinit var locationService: LocationService
 
+
     private val connection = object : ServiceConnection {
         private lateinit var locationBinder: LocationService.LocationServiceBinder
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -33,7 +34,7 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
                 locationBinder =
                     service as LocationService.LocationServiceBinder
                 locationService = locationBinder.getLocationService()
-                Log.d("connection", "onServiceConnected")
+                Log.d("ServiceConnection", "onServiceConnected")
             }
         }
 

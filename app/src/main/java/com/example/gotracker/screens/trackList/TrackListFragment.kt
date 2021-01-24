@@ -12,6 +12,7 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gotracker.GoTrackerApplication
 import com.example.gotracker.R
@@ -32,11 +33,13 @@ import java.util.*
 const val TRACK_PARCELABLE = "track_parcelable"
 
 
-class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickListener {
+class TrackListFragment : Fragment(), View.OnClickListener {
     var showCb = false
     val REMOVE_BTN_STATE = "remove_btn_state"
     val MAP_TRACKS = "map_track"
     lateinit var app: GoTrackerApplication
+    lateinit var mViewModel: TrackListViewModel
+
     private val trackEventListener = object : ValueEventListener {
 
         override fun onDataChange(rootSnapshot: DataSnapshot) {
@@ -110,7 +113,12 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mViewModel = ViewModelProvider(this).get(TrackListViewModel::class.java)
+
+
+
         app = requireActivity().application as GoTrackerApplication
+
 
         showCb = app.mapSelectedTrack.isNotEmpty()
 
@@ -151,7 +159,7 @@ class TrackListFragment : Fragment(R.layout.fragment_track_list), View.OnClickLi
             var lastPosition = 0
             for (pos in datePositionList.indices) {
 
-                if (datePositionList[pos] == userTracks.size -1) {
+                if (datePositionList[pos] == userTracks.size - 1) {
                     remDatePositionList.add(datePositionList[pos])
 
                 } else {

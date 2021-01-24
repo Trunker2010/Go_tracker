@@ -1,17 +1,17 @@
 package com.example.gotracker.screens.enterPhone
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-
-import com.example.gotracker.R
 import com.example.gotracker.MainActivity
+import com.example.gotracker.R
 import com.example.gotracker.RegisterActivity
+import com.example.gotracker.databinding.FragmentEnterPhoneBinding
 import com.example.gotracker.utils.*
-import kotlinx.android.synthetic.main.fragment_enter_phone.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -20,14 +20,18 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
 
     private lateinit var mPhoneNumber: String
     private lateinit var mViewModel: EnterPhoneViewModel
+    private var _binding: FragmentEnterPhoneBinding? = null
+    private val mBinding get() = _binding!!
 
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        _binding = FragmentEnterPhoneBinding.inflate(inflater, container, false)
 
-        return inflater.inflate(R.layout.fragment_enter_phone, container, false)
+
+        return mBinding.root
 
     }
 
@@ -39,10 +43,10 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
     private fun init() {
 
         mViewModel = ViewModelProvider(this).get(EnterPhoneViewModel::class.java)
-        register_btn_next.setOnClickListener {
+        mBinding.registerBtnNext.setOnClickListener {
             val bundle = Bundle()
 
-            mPhoneNumber = register_input_phone_number.text.toString()
+            mPhoneNumber = mBinding.registerInputPhoneNumber.text.toString()
 
             mViewModel.run(fun EnterPhoneViewModel.() = sentSMS(
                 { phoneAuthCredential ->
@@ -73,4 +77,8 @@ class EnterPhoneFragment : Fragment(R.layout.fragment_enter_phone) {
 
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

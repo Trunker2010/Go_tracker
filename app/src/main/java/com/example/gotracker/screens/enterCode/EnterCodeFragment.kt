@@ -14,27 +14,34 @@ import androidx.navigation.NavOptions
 
 import com.example.gotracker.R
 import com.example.gotracker.RegisterActivity
+import com.example.gotracker.databinding.FragmentEnterCodeBinding
 import com.example.gotracker.utils.*
-import kotlinx.android.synthetic.main.fragment_enter_code.*
+
 
 /**
  * A simple [Fragment] subclass.
  */
 class EnterCodeFragment() :
-    Fragment(R.layout.fragment_enter_code) {
+    Fragment() {
 
     lateinit var mPhoneNumber: String
     lateinit var mViewModel: EnterCodeViewModel
     lateinit var mId: String
+    private var _binding: FragmentEnterCodeBinding? = null
+    val mBinding: FragmentEnterCodeBinding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        _binding = FragmentEnterCodeBinding.inflate(inflater, container, false)
+
+
         mPhoneNumber = arguments?.getString(PHONE_NUMBER_KEY).toString()
         mId = arguments?.getString(ID_KEY).toString()
-        return super.onCreateView(inflater, container, savedInstanceState)
+
+        return mBinding.root
     }
 
     override fun onStart() {
@@ -46,10 +53,10 @@ class EnterCodeFragment() :
 
     private fun init() {
         mViewModel = ViewModelProvider(this).get(EnterCodeViewModel::class.java)
-        phone_number.text = mPhoneNumber
-        enter_input_code.addTextChangedListener(object : TextWatcher {
+        mBinding.phoneNumber.text = mPhoneNumber
+        mBinding.enterInputCode.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                val code = enter_input_code.text.toString()
+                val code = mBinding.enterInputCode.text.toString()
                 if (code.length == 6) {
                     mViewModel.enterCode(code, mId, mPhoneNumber) {
                         showToast("Добро пожаловать")
@@ -81,5 +88,10 @@ class EnterCodeFragment() :
             }
         })
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

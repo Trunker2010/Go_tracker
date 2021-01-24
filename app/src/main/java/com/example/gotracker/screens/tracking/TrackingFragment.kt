@@ -2,10 +2,10 @@ package com.example.gotracker.screens.tracking
 
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.PointF
-import android.os.*
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -35,7 +35,6 @@ import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 const val START_TRACKING = "start_tracking"
@@ -47,15 +46,17 @@ const val DISTANCE_KEY = "speed"
 const val MAX_SPEED_KEY = "max_sped "
 const val TIME_KEY = "time"
 
-class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjectListener,
+class TrackingFragment : Fragment(), UserLocationObjectListener,
     View.OnClickListener, CameraListener {
     private var isTouched = false
     private var camZoom = 15.0F
     private val FRAGMENT_TAG = "FragmentTracker"
     lateinit var userLocationLayer: UserLocationLayer
     lateinit var mapKit: MapKit
-    lateinit var binding: FragmentTrackingBinding
-    lateinit var locationService: LocationService
+    private var _binding: FragmentTrackingBinding? = null
+    private val mBinding get() = _binding!!
+
+
     lateinit var mViewModel: TrackingViewModel
     private lateinit var mapObjects: MapObjectCollection
     private lateinit var polyline: PolylineMapObject
@@ -67,7 +68,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
 
     private fun updateTime(it: String) {
-        binding.currentTime.text = it
+        mBinding.currentTime.text = it
     }
 
     private fun updateLocParams(locParams: LocParams) {
@@ -76,12 +77,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         setCamera()
 
 
-        binding.speedM.text = (String.format(
+        mBinding.speedM.text = (String.format(
             Locale.getDefault(),
             "%1$,.2f", locParams.speed
 
         ))
-        binding.distanceM.text = (String.format(
+        mBinding.distanceM.text = (String.format(
             Locale.getDefault(),
             "%1$,.2f", locParams.distance
 
@@ -121,55 +122,62 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentTrackingBinding.inflate(layoutInflater)
+        _binding = FragmentTrackingBinding.inflate(inflater, container, false)
+        val view = mBinding.root
 
-        binding.trackingMapView.map.isRotateGesturesEnabled = true
+        mBinding.trackingMapView.map.isRotateGesturesEnabled = true
 
 
 
 
 
         mapKit = MapKitFactory.getInstance()
-        binding.findMe.setOnClickListener(this)
-        binding.trackingMapView.map.addCameraListener(this)
-        userLocationLayer = mapKit.createUserLocationLayer(binding.trackingMapView.mapWindow)
+        mBinding.findMe.setOnClickListener(this)
+        mBinding.trackingMapView.map.addCameraListener(this)
+        userLocationLayer = mapKit.createUserLocationLayer(mBinding.trackingMapView.mapWindow)
         userLocationLayer.isHeadingEnabled = true
         userLocationLayer.isVisible = true
         userLocationLayer.setObjectListener(this)
         userLocationLayer.isAutoZoomEnabled = true
-        binding.startBtn.setOnClickListener(this)
-        binding.stopBtn.setOnClickListener(this)
-        binding.pauseBtn.setOnClickListener(this)
-        binding.settingsBtn.setOnClickListener(this)
-        binding.resumeBtn.setOnClickListener(this)
-        mapObjects = binding.trackingMapView.map.mapObjects.addCollection()
+        mBinding.startBtn.setOnClickListener(this)
+        mBinding.stopBtn.setOnClickListener(this)
+        mBinding.pauseBtn.setOnClickListener(this)
+        mBinding.settingsBtn.setOnClickListener(this)
+        mBinding.resumeBtn.setOnClickListener(this)
+        mapObjects = mBinding.trackingMapView.map.mapObjects.addCollection()
 
 
         setButton()
         changeButton()
-        return binding.root
+        return view
     }
 
 
     override fun onStart() {
         super.onStart()
+
         mViewModel = ViewModelProvider(this).get(TrackingViewModel::class.java)
         MapKitFactory.getInstance().onStart()
-        binding.trackingMapView.onStart()
+        mBinding.trackingMapView.onStart()
+        updateLocParamsObserver = Observer { updateLocParams(it) }
+        updateTimeObserver = Observer { updateTime(it) }
         mViewModel.doBindService()
 
 
+
+//        if (LocationService.isStarted) {
+//            mViewModel.setLocationParamsObserver(this, updateLocParamsObserver)
+//            mViewModel.setTimeObserver(
+//                this, updateTimeObserver
+//            )
+//        }
+
+
     }
 
-    override fun onResume() {
-//        setCamera()
-
-
-        super.onResume()
-    }
 
     override fun onStop() {
-        binding.trackingMapView.onStop()
+        mBinding.trackingMapView.onStop()
         MapKitFactory.getInstance().onStop()
 
 
@@ -228,10 +236,9 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         when (v?.id) {
 
             R.id.start_btn -> {
-                updateLocParamsObserver = Observer { updateLocParams(it) }
-                updateTimeObserver = Observer { updateTime(it) }
 
-                mapObjects = binding.trackingMapView.map.mapObjects.addCollection()
+
+                mapObjects = mBinding.trackingMapView.map.mapObjects.addCollection()
                 isTouched = false
                 setCamera()
 
@@ -367,7 +374,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
             if (locParams.latitude != 0.0) {
                 val pos = Point(locParams.latitude, locParams.longitude)
 
-                binding.trackingMapView.map.move(
+                mBinding.trackingMapView.map.move(
                     CameraPosition(pos, camZoom, 0.0f, 0.0f),
                     Animation(Animation.Type.LINEAR, 0.3F),
                     null
@@ -380,33 +387,33 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
 
     private fun changeButton() {
         if (LocationService.isStarted) {
-            binding.stoppedLayout.visibility = View.GONE
-            binding.startedLayout.visibility = View.VISIBLE
+            mBinding.stoppedLayout.visibility = View.GONE
+            mBinding.startedLayout.visibility = View.VISIBLE
 
 
         } else {
 
-            binding.stoppedLayout.visibility = View.VISIBLE
-            binding.startedLayout.visibility = View.GONE
+            mBinding.stoppedLayout.visibility = View.VISIBLE
+            mBinding.startedLayout.visibility = View.GONE
         }
 
         if (LocationService.isPaused) {
-            binding.pauseBtn.visibility = View.GONE
-            binding.resumeBtn.visibility = View.VISIBLE
+            mBinding.pauseBtn.visibility = View.GONE
+            mBinding.resumeBtn.visibility = View.VISIBLE
         } else {
-            binding.resumeBtn.visibility = View.GONE
-            binding.pauseBtn.visibility = View.VISIBLE
+            mBinding.resumeBtn.visibility = View.GONE
+            mBinding.pauseBtn.visibility = View.VISIBLE
 
         }
     }
 
     private fun setButton() {
         if (LocationService.isStarted) {
-            binding.stoppedLayout.visibility = View.GONE
-            binding.startedLayout.visibility = View.VISIBLE
+            mBinding.stoppedLayout.visibility = View.GONE
+            mBinding.startedLayout.visibility = View.VISIBLE
         } else {
-            binding.stoppedLayout.visibility = View.VISIBLE
-            binding.startedLayout.visibility = View.GONE
+            mBinding.stoppedLayout.visibility = View.VISIBLE
+            mBinding.startedLayout.visibility = View.GONE
         }
 
 
@@ -426,7 +433,17 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking), UserLocationObjec
         }
     }
 
-
+    //    override fun onDetach() {
+//        super.onDetach()
+//
+//        if (!LocationService.isStarted) {
+//           mViewModel.doUnbindService()
+//        }
+//    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
 
 

@@ -75,7 +75,7 @@ class LocationService : Service() {
 
             val mNotificationManager =
                 baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            Log.d("LocationService", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
+            Log.d("doUnbindService()", "accuracy: ${location!!.accuracy}  dst$distanceInMeters ")
             if (lastLocation == null || isPaused) {
                 lastLocation = location
             }
