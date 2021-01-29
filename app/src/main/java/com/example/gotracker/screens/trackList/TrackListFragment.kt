@@ -1,5 +1,6 @@
 package com.example.gotracker.screens.trackList
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gotracker.GoTrackerApplication
 import com.example.gotracker.R
+import com.example.gotracker.databinding.FragmentTrackListBinding
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
 import com.example.gotracker.screens.trackInfo.TrackInfoActivity
@@ -24,7 +26,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.date_item.view.*
-import kotlinx.android.synthetic.main.fragment_track_list.*
+
 import kotlinx.android.synthetic.main.track_item.*
 import kotlinx.android.synthetic.main.track_item.view.*
 
@@ -39,6 +41,8 @@ class TrackListFragment : Fragment(), View.OnClickListener {
     val MAP_TRACKS = "map_track"
     lateinit var app: GoTrackerApplication
     lateinit var mViewModel: TrackListViewModel
+    var _binding: FragmentTrackListBinding? = null
+    val mBinding get() = _binding!!
 
     private val trackEventListener = object : ValueEventListener {
 
@@ -57,8 +61,8 @@ class TrackListFragment : Fragment(), View.OnClickListener {
                     sortTracks()
                     difTracks()
 //                    getIndexesForInputDate()
-                    if (loadTracksProgressBar != null) {
-                        loadTracksProgressBar.visibility = View.GONE
+                    if (mBinding.loadTracksProgressBar != null) {
+                        mBinding.loadTracksProgressBar.visibility = View.GONE
                         updateUI()
                     }
 
@@ -79,21 +83,21 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v!!.id) {
-            removeImage.id -> {
-//                showCb = false
-                (rv_tracks.adapter as TracksAdapter).removeSelectedItems()
+            mBinding.removeImage.id -> {
+
+                (mBinding.rvTracks.adapter as TracksAdapter).removeSelectedItems()
 
 //                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
                 removeEmptyDate()
-//                buttons.visibility = View.GONE
+                mBinding.buttons.visibility = View.GONE
 
 
             }
-            closeImage.id -> {
+            mBinding.closeImage.id -> {
                 showCb = false
-                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
+                (mBinding.rvTracks.adapter as TracksAdapter).notifyDataSetChanged()
                 app.mapSelectedTrack.clear()
-                buttons.visibility = View.GONE
+                mBinding.buttons.visibility = View.GONE
             }
         }
     }
@@ -101,7 +105,7 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initUserTracks() {
-        loadTracksProgressBar.visibility = View.VISIBLE
+        mBinding.loadTracksProgressBar.visibility = View.VISIBLE
         userTracks = mutableListOf()
         val tracksRefs = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
 
@@ -127,15 +131,23 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentTrackListBinding.inflate(inflater, container, false)
+        return mBinding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        removeImage.setOnClickListener(this)
-        closeImage.setOnClickListener(this)
+        mBinding.removeImage.setOnClickListener(this)
+        mBinding.closeImage.setOnClickListener(this)
 
         if (savedInstanceState != null) {
 
-            buttons.visibility = savedInstanceState.getInt(REMOVE_BTN_STATE)
+            mBinding.buttons.visibility = savedInstanceState.getInt(REMOVE_BTN_STATE)
 
         }
 
@@ -183,9 +195,12 @@ class TrackListFragment : Fragment(), View.OnClickListener {
         findEmptyDate()
         remDatePositionList.sortDescending()
         for (pos in remDatePositionList) {
-            rv_tracks.adapter!!.notifyItemRemoved(pos)
+            mBinding.rvTracks.adapter!!.notifyItemRemoved(pos)
+
             userTracks.removeAt(pos)
         }
+
+//        mBinding.rvTracks.adapter!!.notifyDataSetChanged()
 
 
     }
@@ -223,21 +238,39 @@ class TrackListFragment : Fragment(), View.OnClickListener {
         }
 
         fun removeSelectedItems() {
-            val sortedTracksMap = app.mapSelectedTrack.toSortedMap(reverseOrder())
+
+            val revSortedTracksMap = app.mapSelectedTrack.toSortedMap(reverseOrder())
+            val indexes = mutableListOf<Int>()
+            var i = 1
+            do {
+                indexes.add(i)
+                i++
+            } while (i != itemCount + 1)
+            for (selected in revSortedTracksMap) {
+                indexes.remove(selected.key)
+            }
+            showCb = false
+
+            for (pos in indexes) {
+                notifyItemChanged(pos)
+            }
 
 
 
-            for (track in sortedTracksMap) {
+
+
+
+            for (track in revSortedTracksMap) {
 
 
                 removeDbTrack(track.value)
-                userTracks.removeAt(track.key);
                 notifyItemRemoved(track.key)
+                userTracks.removeAt(track.key);
 
 
             }
 
-            sortedTracksMap.clear()
+            revSortedTracksMap.clear()
             app.mapSelectedTrack.clear()
 
 
@@ -275,7 +308,12 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
             override fun onLongClick(v: View?): Boolean {
                 showCb = true
+
                 notifyDataSetChanged()
+
+
+
+
 
                 return true
             }
@@ -292,15 +330,16 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
 
                     if (app.mapSelectedTrack.isEmpty()) {
-                        showCb = false
+
 //                        Log.d("onCheckedChanged", "isEmpty ${app.mapSelectedTrack.isEmpty()}")
-                        if (!rv_tracks.isComputingLayout) {
+                        if (!mBinding.rvTracks.isComputingLayout) {
+                            showCb = false
                             notifyDataSetChanged()
                         }
 
                     }
                 }
-                buttons.visibility =
+                mBinding.buttons.visibility =
                     if (app.mapSelectedTrack.isNotEmpty()) View.VISIBLE else View.GONE
 
 
@@ -347,6 +386,7 @@ class TrackListFragment : Fragment(), View.OnClickListener {
                 }
 
                 is TrackHolder -> {
+
                     (userTracks[position] as UserTrack).let { userTrack ->
                         holder.bindTrack(userTrack)
                         holder.distance.text =
@@ -364,12 +404,13 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
                         if (showCb) holder.trackCheckBox.visibility =
                             View.VISIBLE else holder.trackCheckBox.visibility = View.GONE
+                        Log.d("TrackHolder", showCb.toString())
 
                         holder.trackCheckBox.isChecked = app.mapSelectedTrack.contains(position)
 
 
                     }
-//                    Log.d("TrackHolder", position.toString())
+
                 }
             }
 
@@ -377,22 +418,22 @@ class TrackListFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    companion object {
-        fun newInstance(): TrackListFragment {
-            return TrackListFragment()
-        }
-    }
+//    companion object {
+//        fun newInstance(): TrackListFragment {
+//            return TrackListFragment()
+//        }
+//    }
 
     fun updateUI() {
-        rv_tracks.adapter = TracksAdapter()
+        mBinding.rvTracks.adapter = TracksAdapter()
     }
 
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(REMOVE_BTN_STATE, buttons.visibility)
+        outState.putInt(REMOVE_BTN_STATE, mBinding.rvTracks.visibility)
 
-        Log.d(REMOVE_BTN_STATE, buttons.visibility.toString())
+        Log.d(REMOVE_BTN_STATE, mBinding.rvTracks.visibility.toString())
         View.VISIBLE
     }
 

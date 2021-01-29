@@ -165,12 +165,12 @@ class TrackingFragment : Fragment(), UserLocationObjectListener,
 
 
 
-//        if (LocationService.isStarted) {
-//            mViewModel.setLocationParamsObserver(this, updateLocParamsObserver)
-//            mViewModel.setTimeObserver(
-//                this, updateTimeObserver
-//            )
-//        }
+        if (LocationService.isStarted) {
+            mViewModel.setLocationParamsObserver(this, updateLocParamsObserver)
+            mViewModel.setTimeObserver(
+                this, updateTimeObserver)
+
+        }
 
 
     }

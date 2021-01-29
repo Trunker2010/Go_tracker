@@ -43,13 +43,14 @@ class LocationService : Service() {
         var isBound = false
         var isStarted: Boolean = false
         var isPaused: Boolean = false
-
+        var liveLocationParams = MutableLiveData<LocParams>()
+        var trackTimer = TrackTimer()
     }
 
 
     lateinit var locationServiceBinder: LocationServiceBinder
     val PERMISSION_STRING = Manifest.permission.ACCESS_FINE_LOCATION
-    var liveLocationParams = MutableLiveData<LocParams>()
+
 
     var speedKmH: Float = 0.0f
     var distanceInMeters: Double = 0.0
@@ -63,7 +64,7 @@ class LocationService : Service() {
     var longitude: Double = 0.0
 
     /*Таймер*/
-    var trackTimer = TrackTimer()
+
     var startTime = 0L
 
     lateinit var locationNotification: LocationNotification

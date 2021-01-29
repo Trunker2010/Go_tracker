@@ -64,47 +64,47 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
     fun startClick() {
         locationService.startTime = System.currentTimeMillis()
         locationService.startLocationUpdates()
-        locationService.trackTimer.startTimer()
+        LocationService.trackTimer.startTimer()
         LocationService.isStarted = true
     }
 
     fun pauseClick() {
         LocationService.isPaused = true
-        locationService.trackTimer.onPauseTimer()
+        LocationService.trackTimer.onPauseTimer()
 
     }
 
     fun resumeClick() {
         LocationService.isPaused = false
         locationService.addTrack()
-        locationService.trackTimer.offPauseTimer()
+        LocationService.trackTimer.offPauseTimer()
     }
 
     fun stopClick(onGoodParams: () -> Unit, onErrorParams: () -> Unit) {
-        if (locationService.liveLocationParams.value!!.distance > 0) {
+        if (LocationService.liveLocationParams.value!!.distance > 0) {
 
 
-            locationService.trackTimer.onPauseTimer()
+            LocationService.trackTimer.onPauseTimer()
             onGoodParams()
 
         } else {
 
 
-            locationService.trackTimer.onPauseTimer()
+            LocationService.trackTimer.onPauseTimer()
             onErrorParams()
         }
     }
 
     fun setLocationParamsObserver(owner: LifecycleOwner, observer: Observer<LocParams>) {
-        locationService.liveLocationParams.observe(owner, observer)
+        LocationService.liveLocationParams.observe(owner, observer)
     }
 
     fun setTimeObserver(owner: LifecycleOwner, observer: Observer<String>) {
-        locationService.trackTimer.liveCurrentTime.observe(owner, observer)
+        LocationService.trackTimer.liveCurrentTime.observe(owner, observer)
     }
 
     fun resultSave() {
-        val locParams = locationService.liveLocationParams.value
+        val locParams = LocationService.liveLocationParams.value
 
         saveTrack(locParams!!)
         stopTracking()
@@ -143,7 +143,7 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun stopTracking() {
-        locationService.trackTimer.stopTimer()
+        LocationService.trackTimer.stopTimer()
         LocationService.isPaused = false
         locationService.removeLocationUpdate()
         locationService.clearParams()
@@ -152,7 +152,7 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun pauseOff() {
-        locationService.trackTimer.offPauseTimer()
+        LocationService.trackTimer.offPauseTimer()
     }
 
 
