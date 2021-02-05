@@ -72,63 +72,21 @@ class MainActivity : AppCompatActivity() {
         if (AUTH.currentUser != null) {
             if (savedInstanceState == null) {
 
-
-//                trackingFragment = TrackingFragment.newInstance()
-//                replaceFragment(trackingFragment)
             }
 
-//            navigation.setOnNavigationItemSelectedListener { item ->
-//                when (item.itemId) {
-//                    R.id.track -> {
-//
-//
-//                        trackingFragment = TrackingFragment.newInstance()
-//
-//
-//                        replaceFragment(trackingFragment)
-//
-//
-//                        //checkPermission()
-//                        true
-//                    }
-//                    R.id.list -> {
-//                        replaceFragment(TrackListFragment.newInstance())
-//
-//                        true
-//                    }
-//                    R.id.statistic -> {
-//
-//                        replaceFragment(FragmentStatistic.newInstance())
-//                        true
-//                    }
-//                    else -> false
-//                }
-//
-//            }
         } else {
 
             navController.navigate(R.id.registerActivity)
-//            val intent = Intent(this, RegisterActivity::class.java)
-//            startActivity(intent)
+
 
             finish()
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initFields() {
         initFirebase()
-        initUser()
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun initUser() {
-        REF_DATABASE_ROOT.child(NODE_USERS).child(UID)
-            .addListenerForSingleValueEvent(AppValueEventListener {
-                USER = it.getValue(User::class.java) ?: User()
-                //initUserTracks()
-            })
-    }
 
 
 }

@@ -1,9 +1,9 @@
-package com.example.gotracker.screens.trackInfo
+package com.example.gotracker
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import com.example.gotracker.R
+import com.example.gotracker.screens.trackInfo.TrackInfoFragment
 import kotlinx.android.synthetic.main.activity_track_info.*
 
 class TrackInfoActivity : AppCompatActivity() {

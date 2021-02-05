@@ -1,6 +1,7 @@
 package com.example.gotracker.utils
 
 import android.util.Log
+import com.example.gotracker.dataBase.AppFirebaseRepository
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.User
 import com.example.gotracker.model.UserTrack
@@ -13,7 +14,9 @@ import java.util.concurrent.ExecutorService
 
 lateinit var AUTH: FirebaseAuth
 lateinit var REF_DATABASE_ROOT: DatabaseReference
+lateinit var REF_USER_TRACKS: DatabaseReference
 lateinit var USER: User
+
 
 lateinit var UID: String
 lateinit var userTracks: MutableList<Any>
@@ -21,7 +24,6 @@ lateinit var userTracks: MutableList<Any>
 const val NODE_TRACKS = "tracks"
 const val CHILD_LONGITUDE = "longitude"
 const val CHILD_LATITUDE = "latitude"
-
 const val NODE_USERS = "user"
 const val CHILD_ID = "id"
 const val CHILD_PHONE = "phone"
@@ -34,17 +36,13 @@ const val CHILD_MAX_SPEED = "max_speed"
 lateinit var executor: ExecutorService
 
 fun initFirebase() {
-    AUTH = FirebaseAuth.getInstance()
-    REF_DATABASE_ROOT = FirebaseDatabase.getInstance().reference
-    USER = User()
-    UID = AUTH.currentUser?.uid.toString()
+    REPOSITORY = AppFirebaseRepository()
 }
 
 
-
-fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
-    (it as? UserTrack)?.startTimeInMs
-}
+//fun sortTracks() = (userTracks as MutableList<*>).sortByDescending {
+//    (it as? UserTrack)?.startTimeInMs
+//}
 
 
 

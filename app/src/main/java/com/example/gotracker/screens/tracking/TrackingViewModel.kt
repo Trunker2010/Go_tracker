@@ -47,7 +47,6 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
             connection,
             Context.BIND_AUTO_CREATE
         )
-
         LocationService.isBound = true
 
     }
@@ -88,8 +87,6 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
             onGoodParams()
 
         } else {
-
-
             LocationService.trackTimer.onPauseTimer()
             onErrorParams()
         }
@@ -105,41 +102,14 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
 
     fun resultSave() {
         val locParams = LocationService.liveLocationParams.value
+        val startTime = locationService.startTime
 
-        saveTrack(locParams!!)
+        saveTrack(locParams!!, startTime)
         stopTracking()
-
     }
 
-    private fun saveTrack(locParams: LocParams) {
-        val dateMap = mutableMapOf<String, Any>()
-        dateMap[CHILD_DISTANCE] = locParams.distance
-        dateMap[CHILD_TIME_DURATION] = locParams.durationTimeMS
-        dateMap[CHILD_START_TIME] = locationService.startTime
-        dateMap[CHILD_MAX_SPEED] = locParams.maxSpeed
-
-        REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
-            .child(dateMap.hashCode().toString())
-            .updateChildren(dateMap)
-
-
-        for ((trackNumber, track) in locationService.tracks.withIndex()) {
-
-            var pos = 0;
-            track.forEach {
-
-                REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
-                    .child(dateMap.hashCode().toString())
-                    .child(CHILD_TRACK_POINTS).child(trackNumber.toString())
-                    .child(pos.toString()).child(CHILD_LATITUDE).setValue(it.latitude)
-
-                REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString())
-                    .child(dateMap.hashCode().toString())
-                    .child(CHILD_TRACK_POINTS).child(trackNumber.toString())
-                    .child(pos.toString()).child(CHILD_LONGITUDE).setValue(it.longitude)
-                pos++
-            }
-        }
+    private fun saveTrack(locParams: LocParams, startTime: Long) {
+        REPOSITORY.insertTrack(locParams, startTime)
     }
 
     fun stopTracking() {

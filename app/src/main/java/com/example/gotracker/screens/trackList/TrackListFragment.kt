@@ -1,6 +1,5 @@
 package com.example.gotracker.screens.trackList
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -20,82 +19,41 @@ import com.example.gotracker.R
 import com.example.gotracker.databinding.FragmentTrackListBinding
 import com.example.gotracker.model.Date
 import com.example.gotracker.model.UserTrack
-import com.example.gotracker.screens.trackInfo.TrackInfoActivity
+import com.example.gotracker.TrackInfoActivity
 import com.example.gotracker.utils.*
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.date_item.view.*
-
 import kotlinx.android.synthetic.main.track_item.*
 import kotlinx.android.synthetic.main.track_item.view.*
-
 import java.util.*
 
 const val TRACK_PARCELABLE = "track_parcelable"
 
 
 class TrackListFragment : Fragment(), View.OnClickListener {
+
+    lateinit var adapter: RecyclerView.Adapter<RecyclerView.ViewHolder>
     var showCb = false
-    val REMOVE_BTN_STATE = "remove_btn_state"
-    val MAP_TRACKS = "map_track"
+    private val removeBtnKey = "remove_btn_state"
     lateinit var app: GoTrackerApplication
     lateinit var mViewModel: TrackListViewModel
-    var _binding: FragmentTrackListBinding? = null
+    private var _binding: FragmentTrackListBinding? = null
     val mBinding get() = _binding!!
-
-    private val trackEventListener = object : ValueEventListener {
-
-        override fun onDataChange(rootSnapshot: DataSnapshot) {
-            var countTracks = rootSnapshot.children.count()
-            rootSnapshot.children.forEach { trackID ->
-                val userTrack = createTrack(trackID)
-                if (userTrack.distance > 0) {
-                    userTracks.add(userTrack)
-                } else
-                    countTracks--
-
-
-
-                if (countTracks == userTracks.size) {
-                    sortTracks()
-                    difTracks()
-//                    getIndexesForInputDate()
-                    if (mBinding.loadTracksProgressBar != null) {
-                        mBinding.loadTracksProgressBar.visibility = View.GONE
-                        updateUI()
-                    }
-
-                }
-
-
-            }
-        }
-
-
-        override fun onCancelled(error: DatabaseError) {
-            TODO("Not yet implemented")
-        }
-
-
-    }
 
 
     override fun onClick(v: View?) {
         when (v!!.id) {
             mBinding.removeImage.id -> {
 
-                (mBinding.rvTracks.adapter as TracksAdapter).removeSelectedItems()
+                removeSelectedItems()
 
-//                (rv_tracks.adapter as TracksAdapter).notifyDataSetChanged()
-                removeEmptyDate()
+                mViewModel.removeEmptyDate(adapter)
                 mBinding.buttons.visibility = View.GONE
 
 
             }
             mBinding.closeImage.id -> {
                 showCb = false
-                (mBinding.rvTracks.adapter as TracksAdapter).notifyDataSetChanged()
+                adapter.notifyDataSetChanged()
                 app.mapSelectedTrack.clear()
                 mBinding.buttons.visibility = View.GONE
             }
@@ -106,11 +64,12 @@ class TrackListFragment : Fragment(), View.OnClickListener {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initUserTracks() {
         mBinding.loadTracksProgressBar.visibility = View.VISIBLE
-        userTracks = mutableListOf()
-        val tracksRefs = REF_DATABASE_ROOT.child(NODE_TRACKS).child(UID)
+        mViewModel.getUserTracks {
+            mBinding.loadTracksProgressBar.visibility = View.GONE
+            updateUI()
+            adapter = mBinding.rvTracks.adapter!!
+        }
 
-        tracksRefs
-            .addListenerForSingleValueEvent(trackEventListener)
     }
 
 
@@ -147,60 +106,12 @@ class TrackListFragment : Fragment(), View.OnClickListener {
 
         if (savedInstanceState != null) {
 
-            mBinding.buttons.visibility = savedInstanceState.getInt(REMOVE_BTN_STATE)
+            mBinding.buttons.visibility = savedInstanceState.getInt(removeBtnKey)
 
         }
 
 
         initUserTracks()
-    }
-
-    private fun removeEmptyDate() {
-        val datePositionList = mutableListOf<Int>()
-        val remDatePositionList = mutableListOf<Int>()
-        fun setDatePosition() {
-            for ((pos) in userTracks.withIndex()) {
-                if (userTracks[pos] !is UserTrack) {
-                    datePositionList.add(pos)
-                }
-            }
-            Log.d("removeEmptyDate", "$datePositionList")
-        }
-
-        fun findEmptyDate() {
-            var lastPosition = 0
-            for (pos in datePositionList.indices) {
-
-                if (datePositionList[pos] == userTracks.size - 1) {
-                    remDatePositionList.add(datePositionList[pos])
-
-                } else {
-                    if ((lastPosition - datePositionList[pos]) == -1) {
-                        remDatePositionList.add(lastPosition)
-
-                    }
-                }
-
-                lastPosition = datePositionList[pos]
-
-
-            }
-            Log.d("remDatePositionList", "$remDatePositionList")
-
-        }
-
-
-
-        setDatePosition()
-        findEmptyDate()
-        remDatePositionList.sortDescending()
-        for (pos in remDatePositionList) {
-            mBinding.rvTracks.adapter!!.notifyItemRemoved(pos)
-
-            userTracks.removeAt(pos)
-        }
-
-//        mBinding.rvTracks.adapter!!.notifyDataSetChanged()
 
 
     }
@@ -219,63 +130,6 @@ class TrackListFragment : Fragment(), View.OnClickListener {
             }
 
         }
-
-
-        private fun removeDbTrack(id: String) {
-            val ref = REF_DATABASE_ROOT.child(NODE_TRACKS).child(AUTH.uid.toString()).child(id).ref
-            ref.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    snapshot.ref.removeValue()
-
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
-                }
-            })
-
-
-        }
-
-        fun removeSelectedItems() {
-
-            val revSortedTracksMap = app.mapSelectedTrack.toSortedMap(reverseOrder())
-            val indexes = mutableListOf<Int>()
-            var i = 1
-            do {
-                indexes.add(i)
-                i++
-            } while (i != itemCount + 1)
-            for (selected in revSortedTracksMap) {
-                indexes.remove(selected.key)
-            }
-            showCb = false
-
-            for (pos in indexes) {
-                notifyItemChanged(pos)
-            }
-
-
-
-
-
-
-            for (track in revSortedTracksMap) {
-
-
-                removeDbTrack(track.value)
-                notifyItemRemoved(track.key)
-                userTracks.removeAt(track.key);
-
-
-            }
-
-            revSortedTracksMap.clear()
-            app.mapSelectedTrack.clear()
-
-
-        }
-
 
         inner class TrackHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
             View.OnClickListener, View.OnLongClickListener, CompoundButton.OnCheckedChangeListener {
@@ -418,66 +272,36 @@ class TrackListFragment : Fragment(), View.OnClickListener {
         }
     }
 
-//    companion object {
-//        fun newInstance(): TrackListFragment {
-//            return TrackListFragment()
-//        }
-//    }
 
-    fun updateUI() {
+    private fun updateUI() {
         mBinding.rvTracks.adapter = TracksAdapter()
     }
 
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(REMOVE_BTN_STATE, mBinding.rvTracks.visibility)
+        outState.putInt(removeBtnKey, mBinding.rvTracks.visibility)
 
-        Log.d(REMOVE_BTN_STATE, mBinding.rvTracks.visibility.toString())
+        Log.d(removeBtnKey, mBinding.rvTracks.visibility.toString())
         View.VISIBLE
     }
 
-
-    fun difTracks() {
-        val dateMap = mutableMapOf<Int, Date>()
-        fun setIndexesForInputDate() {
-
-            if (userTracks.size >= 1) {
-
-                var firstDate = (userTracks[0] as Date).startDate
-                val date = Date()
-                date.startDate = firstDate
-
-                dateMap[0] = date
-
-                for (i in userTracks.indices) {
-
-                    if (userTracks.size > i + 1 && userTracks[i + 1] is UserTrack) {
-
-                        if ((userTracks[i] as Date).startDate != (userTracks[i + 1] as Date).startDate) {
-                            val bufDate = (userTracks[i + 1] as Date).startDate
-                            val date = Date()
-                            date.startDate = bufDate
-                            dateMap[i + 1] = date
-                        }
-
-                    }
-                    Log.d("getIndexesForInputDate", "$dateMap")
-
-                }
-
-            }
+    private fun removeSelectedItems() {
+        val itemCount = adapter.itemCount
+        val revSortedTracksMap = app.mapSelectedTrack.toSortedMap(reverseOrder())
+        val indexes = mViewModel.getPrepareItems(itemCount)
+        showCb = false
+        for (pos in indexes) {
+            adapter.notifyItemChanged(pos)
+        }
+        for (track in revSortedTracksMap) {
+            mViewModel.removeTrack(track.value)
+            adapter.notifyItemRemoved(track.key)
+            userTracks.removeAt(track.key);
 
         }
-
-        fun insetDate() {
-            val sortedDate = dateMap.toSortedMap(reverseOrder())
-            for (date in sortedDate) {
-                userTracks.add(date.key, date.value)
-            }
-        }
-        setIndexesForInputDate()
-        insetDate()
+        revSortedTracksMap.clear()
+        app.mapSelectedTrack.clear()
     }
 
 

@@ -11,7 +11,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.gotracker.R
+import com.example.gotracker.databinding.BottomSheetBinding
+import com.example.gotracker.databinding.FragmentTrackInfoBinding
 import com.example.gotracker.model.UserTrack
 import com.example.gotracker.screens.trackList.TRACK_PARCELABLE
 
@@ -25,14 +28,17 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.geometry.Polyline
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.MapObjectCollection
-import kotlinx.android.synthetic.main.bottom_sheet.*
-import kotlinx.android.synthetic.main.fragment_track_info.*
 import java.util.*
 
-class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
+class TrackInfoFragment : Fragment() {
     private var userTrack: UserTrack = UserTrack()
     private lateinit var trackObject: MapObjectCollection
     private lateinit var trackRef: DatabaseReference
+    private lateinit var mViewModel: TrackInfoViewModel
+    private var _binding: FragmentTrackInfoBinding? = null
+    private val mBinding get() = _binding!!
+    private var _bindingBottomSheet: BottomSheetBinding? = null
+    private val mBindingBottomSheetBinding get() = _bindingBottomSheet!!
     private val pointEventListener = AppValueEventListener { pointsGroup ->
 
 
@@ -41,27 +47,21 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
             userTrack.trackPoints.add(createPoints(points))
 
 
-            Log.d("pointsGroup", "id =${userTrack.trackID} points= ${userTrack.trackPoints.size}")
-
 
         }
         drawTrackPoints(userTrack.trackPoints)
 
-        val boundingBox = findBoundingBoxPoints(userTrack.trackPoints)
-        var cameraPosition = trackMapView.map.cameraPosition(boundingBox)
+        val boundingBox = mViewModel.findBoundingBoxPoints(userTrack.trackPoints)
+        var cameraPosition = mBinding.trackMapView.map.cameraPosition(boundingBox)
         cameraPosition = CameraPosition(
             cameraPosition.target,
             cameraPosition.zoom - 0.8f,
             cameraPosition.azimuth,
             cameraPosition.tilt
         )
-        trackMapView.map.move(cameraPosition, Animation(Animation.Type.SMOOTH, 0f), null)
+        mBinding.trackMapView.map.move(cameraPosition, Animation(Animation.Type.SMOOTH, 0f), null)
 
-//        trackMapView.map.move(
-//            CameraPosition(userTrack.trackPoints[0][0], 14.0f, 0.0f, 0.0f),
-//            Animation(Animation.Type.SMOOTH, 1F), Map.CameraCallback { }
-//        )
-//        trackMapView.map.cameraPosition(BoundingBox())
+
 
 
         var startPoint = trackObject.addCircle(
@@ -70,12 +70,13 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
         )
 
 
-        main_info.text = "${userTrack.startDate} ${userTrack.startTime}"
-        distance_params.text =
+        mBindingBottomSheetBinding.mainInfo.text = "${userTrack.startDate} ${userTrack.startTime}"
+        mBindingBottomSheetBinding.distanceParams.text =
             "${String.format(Locale.getDefault(), "%.2f", userTrack.distance)} км"
-        max_speed_params.text = userTrack.maxSpeed.toString()
-        duration_params.text = LocationConverter.convertMStoTime(userTrack.activeDuration)
-        av_speed_params.text = "${
+        mBindingBottomSheetBinding.maxSpeedParams.text = userTrack.maxSpeed.toString()
+        mBindingBottomSheetBinding.durationParams.text =
+            LocationConverter.convertMStoTime(userTrack.activeDuration)
+        mBindingBottomSheetBinding.avSpeedParams.text = "${
             String.format(
                 Locale.getDefault(),
                 "%.2f",
@@ -107,11 +108,15 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        _binding = FragmentTrackInfoBinding.inflate(inflater, container, false)
+        _bindingBottomSheet = mBinding.bottomSheet
+        val view = mBinding.root
 
+        mViewModel = ViewModelProvider(this).get(TrackInfoViewModel::class.java)
         MapKitFactory.initialize(this.context)
         userTrack = arguments?.getParcelable(TRACK_PARCELABLE)!!
 
-        return super.onCreateView(inflater, container, savedInstanceState)
+        return view
 
 
     }
@@ -129,14 +134,14 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     override fun onResume() {
         super.onResume()
         getTrackPoints(userTrack.trackID)
-        trackObject = trackMapView.map.mapObjects.addCollection()
-        bottom_sheet.setOnTouchListener { _, event ->
-            Log.d("MotionEvent", event!!.action.toString())
-            trackMapView.map.isScrollGesturesEnabled = false
+        trackObject = mBinding.trackMapView.map.mapObjects.addCollection()
+        mBindingBottomSheetBinding.root.setOnTouchListener { _, event ->
 
-            if (event!!.action == MotionEvent.ACTION_CANCEL || event!!.action == MotionEvent.ACTION_UP) {
+            mBinding.trackMapView.map.isScrollGesturesEnabled = false
 
-                trackMapView.map.isScrollGesturesEnabled = true
+            if (event.action == MotionEvent.ACTION_CANCEL || event.action == MotionEvent.ACTION_UP) {
+
+                mBinding.trackMapView.map.isScrollGesturesEnabled = true
             }
             true
         }
@@ -147,52 +152,17 @@ class TrackInfoFragment : Fragment(R.layout.fragment_track_info) {
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
-        trackMapView.onStart()
+        mBinding.trackMapView.onStart()
 
     }
 
     override fun onStop() {
         super.onStop()
         MapKitFactory.getInstance().onStop()
-        trackMapView.onStop()
+        mBinding.trackMapView.onStop()
         trackRef.removeEventListener(pointEventListener)
 
     }
 
-    private fun findBoundingBoxPoints(pointLists: MutableList<MutableList<Point>>): BoundingBox {
 
-        var i = 0
-        Log.d("findBoundingBoxPoints", "start $i")
-        var maxLatitude: Double = pointLists[0][0].latitude
-        var maxLongitude: Double = pointLists[0][0].longitude
-        var minLatitude: Double = pointLists[0][0].latitude
-        var minLongitude: Double = pointLists[0][0].longitude
-        for (pointList in pointLists) {
-            for (point in pointList) {
-
-                if (point.latitude > maxLatitude) {
-                    maxLatitude = point.latitude
-
-                } else if (point.latitude < minLatitude) {
-                    minLatitude = point.latitude
-                }
-
-                if (point.longitude > maxLongitude) {
-                    maxLongitude = point.longitude
-
-                } else if (point.longitude < minLongitude) {
-                    minLongitude = point.longitude
-                }
-
-
-                i++
-            }
-        }
-        val southWest = Point(minLatitude, minLongitude)
-        val northEast = Point(maxLatitude, maxLongitude)
-
-        Log.d("findBoundingBoxPoints", "end $i")
-        return BoundingBox(southWest, northEast)
-
-    }
 }

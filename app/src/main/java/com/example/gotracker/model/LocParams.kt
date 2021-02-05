@@ -16,6 +16,7 @@ class LocParams {
     //    var time = ""
     var durationTimeMS = 0L
 
+
     constructor()
     constructor(
         maxSpeed: Float,
